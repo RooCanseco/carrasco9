@@ -1,0 +1,657 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Carrasco 9 · Dashboard de Reporteo</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600;700&display=swap');
+
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --red:#C0152B;--red-dark:#8B0F1F;--red-glow:rgba(192,21,43,.15);
+  --dark:#0D0D0D;--dark2:#141414;--dark3:#1C1C1C;--dark4:#242424;
+  --border:#2A2A2A;--border2:#333;
+  --white:#FFFFFF;--gray:#888;--gray2:#555;
+  --green:#1DB954;--amber:#F5A623;--blue:#3B8EEA;
+  --font:'DM Sans',sans-serif;--mono:'DM Mono',monospace;
+}
+
+html,body{min-height:100%;background:var(--dark);color:var(--white);font-family:var(--font);font-size:14px;-webkit-font-smoothing:antialiased}
+
+/* ─── HEADER ─────────────────────────────── */
+.header{
+  background:var(--dark2);border-bottom:1px solid var(--border);
+  padding:0 32px;height:56px;
+  display:flex;align-items:center;justify-content:space-between;
+  position:sticky;top:0;z-index:100;
+}
+.header-brand{display:flex;align-items:center;gap:12px}
+.header-brand .dot{width:8px;height:8px;background:var(--red);border-radius:50%}
+.header-brand .name{font-size:13px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--white)}
+.header-brand .sep{color:var(--border2);font-size:13px}
+.header-brand .sub{font-size:12px;color:var(--gray);letter-spacing:.04em}
+.header-right{display:flex;align-items:center;gap:12px}
+.last-update{font-family:var(--mono);font-size:11px;color:var(--gray2)}
+.btn-refresh{
+  background:var(--dark4);border:1px solid var(--border2);color:var(--gray);
+  padding:5px 12px;border-radius:4px;cursor:pointer;font-size:12px;font-family:var(--font);
+  transition:all .2s;display:flex;align-items:center;gap:6px;
+}
+.btn-refresh:hover{border-color:var(--red);color:var(--white)}
+.btn-refresh.loading .icon{animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ─── FILTERS ────────────────────────────── */
+.filters{
+  background:var(--dark2);border-bottom:1px solid var(--border);
+  padding:12px 32px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;
+}
+.filter-label{font-size:11px;color:var(--gray);text-transform:uppercase;letter-spacing:.08em}
+.filter-btn{
+  background:var(--dark4);border:1px solid var(--border2);color:var(--gray);
+  padding:5px 14px;border-radius:4px;cursor:pointer;font-size:12px;font-family:var(--font);
+  transition:all .2s;
+}
+.filter-btn:hover,.filter-btn.active{background:var(--red);border-color:var(--red);color:var(--white)}
+.date-inputs{display:flex;align-items:center;gap:8px;margin-left:auto}
+.date-input{
+  background:var(--dark4);border:1px solid var(--border2);color:var(--white);
+  padding:5px 10px;border-radius:4px;font-size:12px;font-family:var(--mono);
+  outline:none;
+}
+.date-input:focus{border-color:var(--red)}
+.btn-apply{
+  background:var(--red);border:none;color:var(--white);
+  padding:5px 16px;border-radius:4px;cursor:pointer;font-size:12px;font-weight:600;
+  font-family:var(--font);transition:background .2s;
+}
+.btn-apply:hover{background:var(--red-dark)}
+
+/* ─── MAIN ───────────────────────────────── */
+.main{padding:24px 32px;display:flex;flex-direction:column;gap:24px}
+
+/* ─── SECTION HEADER ─────────────────────── */
+.section-head{
+  display:flex;align-items:center;gap:10px;margin-bottom:14px;
+}
+.section-tag{
+  background:var(--red);color:var(--white);
+  font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;
+  padding:3px 10px;border-radius:2px;
+}
+.section-title{font-size:15px;font-weight:600;color:var(--white)}
+.section-sub{font-size:12px;color:var(--gray);margin-left:auto;font-family:var(--mono)}
+
+/* ─── KPI GRID ───────────────────────────── */
+.kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px}
+.kpi{
+  background:var(--dark3);border:1px solid var(--border);border-radius:6px;
+  padding:16px;position:relative;overflow:hidden;transition:border-color .2s;
+}
+.kpi:hover{border-color:var(--border2)}
+.kpi::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--border)}
+.kpi.accent::before{background:var(--red)}
+.kpi.green::before{background:var(--green)}
+.kpi.amber::before{background:var(--amber)}
+.kpi.blue::before{background:var(--blue)}
+.kpi-label{font-size:10px;color:var(--gray);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px}
+.kpi-val{font-size:24px;font-weight:700;color:var(--white);line-height:1;margin-bottom:4px;font-family:var(--mono)}
+.kpi.accent .kpi-val{color:var(--red)}
+.kpi-sub{font-size:11px;color:var(--gray2)}
+
+/* ─── GRID 2 COL ─────────────────────────── */
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px}
+@media(max-width:900px){.grid2,.grid3{grid-template-columns:1fr}}
+
+/* ─── CARD ───────────────────────────────── */
+.card{
+  background:var(--dark3);border:1px solid var(--border);border-radius:6px;
+  padding:20px;
+}
+.card-title{font-size:12px;font-weight:600;color:var(--white);margin-bottom:16px;text-transform:uppercase;letter-spacing:.06em}
+
+/* ─── TABLE ──────────────────────────────── */
+.tbl{width:100%;border-collapse:collapse;font-size:12px}
+.tbl thead th{
+  padding:7px 10px;text-align:left;
+  font-size:10px;font-weight:600;color:var(--gray);
+  text-transform:uppercase;letter-spacing:.06em;
+  border-bottom:1px solid var(--border);
+}
+.tbl thead th.r{text-align:right}
+.tbl tbody tr{border-bottom:1px solid var(--border);transition:background .15s}
+.tbl tbody tr:hover{background:var(--dark4)}
+.tbl tbody tr:last-child{border-bottom:none}
+.tbl tbody td{padding:8px 10px;color:var(--white)}
+.tbl tbody td.r{text-align:right;font-family:var(--mono);color:var(--gray)}
+.tbl tbody td.rv{text-align:right;font-family:var(--mono);color:var(--red);font-weight:600}
+.tbl tbody td.gv{text-align:right;font-family:var(--mono);color:var(--green);font-weight:600}
+.tbl tbody td.av{text-align:right;font-family:var(--mono);color:var(--amber);font-weight:600}
+
+/* ─── FUNNEL ─────────────────────────────── */
+.funnel{display:flex;flex-direction:column;gap:6px}
+.funnel-row{
+  display:flex;align-items:center;gap:10px;
+}
+.funnel-label{font-size:12px;color:var(--gray);min-width:130px}
+.funnel-bar-wrap{flex:1;background:var(--dark4);border-radius:3px;height:24px;overflow:hidden}
+.funnel-bar{height:100%;background:var(--red);border-radius:3px;display:flex;align-items:center;padding-left:8px;font-size:11px;font-weight:600;color:var(--white);transition:width .6s ease;min-width:30px}
+.funnel-num{font-size:12px;font-family:var(--mono);color:var(--white);min-width:24px;text-align:right}
+
+/* ─── PLATFORM TABS ──────────────────────── */
+.platform-tabs{display:flex;gap:2px;margin-bottom:16px;background:var(--dark4);padding:3px;border-radius:6px;width:fit-content}
+.ptab{
+  padding:5px 16px;border-radius:4px;cursor:pointer;
+  font-size:12px;font-weight:500;color:var(--gray);transition:all .2s;
+}
+.ptab.active{background:var(--dark2);color:var(--white);box-shadow:0 1px 3px rgba(0,0,0,.3)}
+
+/* ─── PILL TAG ───────────────────────────── */
+.pill{display:inline-block;font-size:10px;padding:2px 8px;border-radius:20px;font-weight:600}
+.pill-red{background:rgba(192,21,43,.2);color:#ff6b7a}
+.pill-green{background:rgba(29,185,84,.15);color:var(--green)}
+.pill-amber{background:rgba(245,166,35,.15);color:var(--amber)}
+.pill-blue{background:rgba(59,142,234,.15);color:var(--blue)}
+
+/* ─── CHART CONTAINER ────────────────────── */
+.chart-wrap{position:relative;height:200px}
+
+/* ─── LOADING OVERLAY ────────────────────── */
+.loading-overlay{
+  position:fixed;inset:0;background:rgba(13,13,13,.85);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  z-index:200;gap:16px;
+}
+.loading-overlay.hidden{display:none}
+.spinner{
+  width:40px;height:40px;border:3px solid var(--border2);
+  border-top-color:var(--red);border-radius:50%;
+  animation:spin .7s linear infinite;
+}
+.loading-text{font-size:13px;color:var(--gray);font-family:var(--mono)}
+
+/* ─── ERROR STATE ────────────────────────── */
+.error-bar{
+  background:rgba(192,21,43,.1);border:1px solid rgba(192,21,43,.3);
+  color:#ff6b7a;padding:10px 32px;font-size:12px;
+  display:none;
+}
+.error-bar.show{display:block}
+
+/* ─── DIVIDER ────────────────────────────── */
+.section-divider{height:1px;background:var(--border);margin:4px 0}
+
+/* ─── TOTALS ROW ─────────────────────────── */
+.totals-combined{
+  display:grid;grid-template-columns:1fr 1fr;gap:12px;
+  background:var(--dark4);border:1px solid var(--border);border-radius:6px;
+  padding:16px;
+}
+.totals-combined .platform-label{
+  font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;
+  margin-bottom:10px;padding-bottom:8px;border-bottom:1px solid var(--border);
+}
+.totals-combined .platform-label.meta{color:#1877F2}
+.totals-combined .platform-label.tiktok{color:#FE2C55}
+.totals-row{display:flex;justify-content:space-between;padding:3px 0;border-bottom:1px solid var(--border)}
+.totals-row:last-child{border-bottom:none}
+.totals-k{font-size:11px;color:var(--gray)}
+.totals-v{font-size:11px;font-family:var(--mono);color:var(--white);font-weight:500}
+
+/* ─── FOOTER ─────────────────────────────── */
+.footer{
+  padding:16px 32px;border-top:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;
+}
+.footer span{font-size:11px;color:var(--gray2)}
+.footer .brand{color:var(--gray);font-weight:600}
+</style>
+</head>
+<body>
+
+<!-- LOADING -->
+<div class="loading-overlay" id="loading">
+  <div class="spinner"></div>
+  <div class="loading-text">Cargando datos en tiempo real...</div>
+</div>
+
+<!-- ERROR -->
+<div class="error-bar" id="errorBar"></div>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="header-brand">
+    <div class="dot"></div>
+    <span class="name">Carrasco 9</span>
+    <span class="sep">|</span>
+    <span class="sub">Dashboard de Reporteo</span>
+  </div>
+  <div class="header-right">
+    <span class="last-update" id="lastUpdate">—</span>
+    <button class="btn-refresh" onclick="loadData()">
+      <span class="icon">↺</span> Actualizar
+    </button>
+  </div>
+</div>
+
+<!-- FILTERS -->
+<div class="filters">
+  <span class="filter-label">Periodo</span>
+  <button class="filter-btn" onclick="setPreset('today')">Hoy</button>
+  <button class="filter-btn" onclick="setPreset('week')">7 días</button>
+  <button class="filter-btn active" onclick="setPreset('month')">Este mes</button>
+  <button class="filter-btn" onclick="setPreset('last30')">Últimos 30 días</button>
+  <div class="date-inputs">
+    <input type="date" class="date-input" id="dateFrom">
+    <span style="color:var(--gray);font-size:12px">a</span>
+    <input type="date" class="date-input" id="dateTo">
+    <button class="btn-apply" onclick="loadData()">Aplicar</button>
+  </div>
+</div>
+
+<!-- MAIN -->
+<div class="main">
+
+  <!-- RESUMEN COMBINADO -->
+  <div>
+    <div class="section-head">
+      <span class="section-tag">Resumen</span>
+      <span class="section-title">Inversión total en medios</span>
+      <span class="section-sub" id="periodoLabel">—</span>
+    </div>
+    <div class="kpi-grid" id="kpiResumen">
+      <div class="kpi accent"><div class="kpi-label">Gasto total</div><div class="kpi-val" id="kpiGastoTotal">—</div><div class="kpi-sub">Meta + TikTok</div></div>
+      <div class="kpi blue"><div class="kpi-label">Total leads</div><div class="kpi-val" id="kpiLeadsTotal">—</div><div class="kpi-sub">Ambas plataformas</div></div>
+      <div class="kpi"><div class="kpi-label">CPL combinado</div><div class="kpi-val" id="kpiCplTotal">—</div><div class="kpi-sub">Costo por lead</div></div>
+      <div class="kpi"><div class="kpi-label">Impresiones</div><div class="kpi-val" id="kpiImpTotal">—</div><div class="kpi-sub">Total ambas plataformas</div></div>
+      <div class="kpi green"><div class="kpi-label">Oportunidades CRM</div><div class="kpi-val" id="kpiOpsAbiertas">—</div><div class="kpi-sub">Abiertas actualmente</div></div>
+      <div class="kpi amber"><div class="kpi-label">Perdidas</div><div class="kpi-val" id="kpiOpsPerdidas">—</div><div class="kpi-sub">Del periodo</div></div>
+    </div>
+  </div>
+
+  <!-- META + TIKTOK LADO A LADO -->
+  <div>
+    <div class="section-head">
+      <span class="section-tag">Publicidad</span>
+      <span class="section-title">Meta Ads vs TikTok Ads</span>
+    </div>
+    <div class="totals-combined">
+      <div>
+        <div class="platform-label meta">▶ Meta Ads</div>
+        <div class="totals-row"><span class="totals-k">Gasto</span><span class="totals-v" id="metaGasto">—</span></div>
+        <div class="totals-row"><span class="totals-k">Impresiones</span><span class="totals-v" id="metaImp">—</span></div>
+        <div class="totals-row"><span class="totals-k">Alcance</span><span class="totals-v" id="metaAlcance">—</span></div>
+        <div class="totals-row"><span class="totals-k">Clicks</span><span class="totals-v" id="metaClicks">—</span></div>
+        <div class="totals-row"><span class="totals-k">CTR</span><span class="totals-v" id="metaCtr">—</span></div>
+        <div class="totals-row"><span class="totals-k">CPM</span><span class="totals-v" id="metaCpm">—</span></div>
+        <div class="totals-row"><span class="totals-k">Leads</span><span class="totals-v" id="metaLeads">—</span></div>
+        <div class="totals-row"><span class="totals-k">CPL</span><span class="totals-v" id="metaCpl">—</span></div>
+        <div class="totals-row"><span class="totals-k">Frecuencia</span><span class="totals-v" id="metaFrec">—</span></div>
+      </div>
+      <div>
+        <div class="platform-label tiktok">▶ TikTok Ads</div>
+        <div class="totals-row"><span class="totals-k">Gasto</span><span class="totals-v" id="ttGasto">—</span></div>
+        <div class="totals-row"><span class="totals-k">Impresiones</span><span class="totals-v" id="ttImp">—</span></div>
+        <div class="totals-row"><span class="totals-k">Alcance</span><span class="totals-v" id="ttAlcance">—</span></div>
+        <div class="totals-row"><span class="totals-k">Clicks</span><span class="totals-v" id="ttClicks">—</span></div>
+        <div class="totals-row"><span class="totals-k">CTR</span><span class="totals-v" id="ttCtr">—</span></div>
+        <div class="totals-row"><span class="totals-k">CPM</span><span class="totals-v" id="ttCpm">—</span></div>
+        <div class="totals-row"><span class="totals-k">Conversiones</span><span class="totals-v" id="ttConv">—</span></div>
+        <div class="totals-row"><span class="totals-k">CPL</span><span class="totals-v" id="ttCpl">—</span></div>
+        <div class="totals-row"><span class="totals-k">Frecuencia</span><span class="totals-v" id="ttFrec">—</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CAMPAÑAS -->
+  <div>
+    <div class="section-head">
+      <span class="section-tag">Campañas</span>
+      <span class="section-title">Rendimiento por campaña</span>
+    </div>
+    <div class="grid2">
+      <div class="card">
+        <div class="card-title" style="color:#1877F2">Meta Ads</div>
+        <table class="tbl" id="tblMetaCampanas">
+          <thead><tr><th>Campaña</th><th class="r">Gasto</th><th class="r">Leads</th><th class="r">CPL</th><th class="r">CTR</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+      <div class="card">
+        <div class="card-title" style="color:#FE2C55">TikTok Ads</div>
+        <table class="tbl" id="tblTikTokCampanas">
+          <thead><tr><th>Campaña</th><th class="r">Gasto</th><th class="r">Conv.</th><th class="r">CPL</th><th class="r">CTR</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- TENDENCIA -->
+  <div>
+    <div class="section-head">
+      <span class="section-tag">Tendencia</span>
+      <span class="section-title">Gasto diario</span>
+    </div>
+    <div class="grid2">
+      <div class="card">
+        <div class="card-title" style="color:#1877F2">Meta Ads — Gasto diario</div>
+        <div class="chart-wrap"><canvas id="chartMeta"></canvas></div>
+      </div>
+      <div class="card">
+        <div class="card-title" style="color:#FE2C55">TikTok Ads — Gasto diario</div>
+        <div class="chart-wrap"><canvas id="chartTikTok"></canvas></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CRM GHL -->
+  <div>
+    <div class="section-head">
+      <span class="section-tag">CRM</span>
+      <span class="section-title">Pipeline GoHighLevel</span>
+    </div>
+    <div class="grid3">
+      <div class="card" style="grid-column:span 2">
+        <div class="card-title">Distribución del embudo</div>
+        <div class="funnel" id="funnelGHL"></div>
+      </div>
+      <div class="card">
+        <div class="card-title">Fuente de leads</div>
+        <table class="tbl" id="tblFuentes">
+          <thead><tr><th>Fuente</th><th class="r">Leads</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- RAZONES DE PÉRDIDA -->
+  <div>
+    <div class="section-head">
+      <span class="section-tag">CRM</span>
+      <span class="section-title">Razones de pérdida</span>
+    </div>
+    <div class="card">
+      <table class="tbl" id="tblRazones">
+        <thead><tr><th>Razón</th><th class="r">Cantidad</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+
+<!-- FOOTER -->
+<div class="footer">
+  <span>Datos en tiempo real via Windsor.ai · GHL</span>
+  <span class="brand">Lead 2 Close Protocol · canseco.mx</span>
+</div>
+
+<script>
+// ─── CONFIG ──────────────────────────────────────────────
+const WEBHOOK_URL = 'https://flows.canseco.io/webhook/carrasco9-dashboard';
+
+const STAGE_NAMES = {
+  'bc8e1607-0092-4842-a799-15dfc16fca1b': 'Conectado',
+  'd085a467-90e7-4475-953b-71d8ae6df77c': 'Seguimiento',
+  'b139706a-e7cc-4abd-86a6-b9d480a293d4': 'Cita Agendada',
+  '44011272-21aa-41a2-adb1-fea9c29337ca': 'Cita Concretada',
+  '7710c30e-04ea-490a-82f3-115e5f1b6be3': 'Interesado',
+  'e52c3c20-e7e0-4351-875a-5c091faa96a0': 'Propuesta Enviada',
+  '42fa0920-8c6f-49e9-a598-47cd42ad0595': 'Negociación',
+  'Sin razón': 'Sin razón registrada',
+  '69e342d15cc1bf04d7647798': 'No contestó (workflow)'
+};
+
+let chartMeta = null, chartTikTok = null;
+
+// ─── DATE HELPERS ─────────────────────────────────────────
+function today() { return new Date().toISOString().split('T')[0]; }
+function daysAgo(n) {
+  const d = new Date();
+  d.setDate(d.getDate() - n);
+  return d.toISOString().split('T')[0];
+}
+function firstOfMonth() {
+  const d = new Date();
+  return new Date(d.getFullYear(), d.getMonth(), 1).toISOString().split('T')[0];
+}
+
+function setPreset(p) {
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  event.target.classList.add('active');
+  const from = document.getElementById('dateFrom');
+  const to = document.getElementById('dateTo');
+  to.value = today();
+  if (p === 'today') from.value = today();
+  else if (p === 'week') from.value = daysAgo(7);
+  else if (p === 'month') from.value = firstOfMonth();
+  else if (p === 'last30') from.value = daysAgo(30);
+  loadData();
+}
+
+// ─── FORMAT HELPERS ───────────────────────────────────────
+function fMXN(v) { return '$' + parseFloat(v||0).toLocaleString('es-MX', {minimumFractionDigits:0, maximumFractionDigits:0}); }
+function fNum(v) { return parseFloat(v||0).toLocaleString('es-MX'); }
+function fPct(v) { return parseFloat(v||0).toFixed(2) + '%'; }
+function fK(v) { const n = parseFloat(v||0); return n >= 1000 ? (n/1000).toFixed(1)+'K' : n.toString(); }
+
+// ─── LOAD DATA ────────────────────────────────────────────
+async function loadData() {
+  const from = document.getElementById('dateFrom').value;
+  const to = document.getElementById('dateTo').value;
+  const loading = document.getElementById('loading');
+  const errorBar = document.getElementById('errorBar');
+  const btn = document.querySelector('.btn-refresh');
+
+  loading.classList.remove('hidden');
+  btn.classList.add('loading');
+  errorBar.classList.remove('show');
+
+  try {
+    const url = `${WEBHOOK_URL}?date_from=${from}&date_to=${to}`;
+    const res = await fetch(url);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+    if (!data.ok) throw new Error('Respuesta inválida del servidor');
+    renderDashboard(data, from, to);
+    document.getElementById('lastUpdate').textContent = 'Actualizado: ' + new Date().toLocaleTimeString('es-MX');
+  } catch (e) {
+    errorBar.textContent = '⚠ Error al cargar datos: ' + e.message;
+    errorBar.classList.add('show');
+  } finally {
+    loading.classList.add('hidden');
+    btn.classList.remove('loading');
+  }
+}
+
+// ─── RENDER ───────────────────────────────────────────────
+function renderDashboard(data, from, to) {
+  const { meta, tiktok, ghl } = data;
+  const mt = meta.totales;
+  const tt = tiktok.totales;
+
+  // Periodo label
+  document.getElementById('periodoLabel').textContent = from + ' → ' + to;
+
+  // KPIs resumen
+  const gastoTotal = parseFloat(mt.gasto||0) + parseFloat(tt.gasto||0);
+  const leadsTotal = parseFloat(mt.leads||0) + parseFloat(tt.conversiones||0);
+  const cplTotal = leadsTotal > 0 ? gastoTotal / leadsTotal : 0;
+  const impTotal = (mt.impresiones||0) + (tt.impresiones||0);
+
+  document.getElementById('kpiGastoTotal').textContent = fMXN(gastoTotal);
+  document.getElementById('kpiLeadsTotal').textContent = fNum(leadsTotal);
+  document.getElementById('kpiCplTotal').textContent = fMXN(cplTotal);
+  document.getElementById('kpiImpTotal').textContent = fK(impTotal);
+  document.getElementById('kpiOpsAbiertas').textContent = fNum(ghl.abiertas);
+  document.getElementById('kpiOpsPerdidas').textContent = fNum(ghl.perdidas);
+
+  // Meta totales
+  document.getElementById('metaGasto').textContent = fMXN(mt.gasto);
+  document.getElementById('metaImp').textContent = fK(mt.impresiones);
+  document.getElementById('metaAlcance').textContent = fK(mt.alcance);
+  document.getElementById('metaClicks').textContent = fNum(mt.clicks);
+  document.getElementById('metaCtr').textContent = fPct(mt.ctr);
+  document.getElementById('metaCpm').textContent = fMXN(mt.cpm);
+  document.getElementById('metaLeads').textContent = fNum(mt.leads);
+  document.getElementById('metaCpl').textContent = fMXN(mt.cpl);
+  document.getElementById('metaFrec').textContent = parseFloat(mt.frecuencia||0).toFixed(2)+'x';
+
+  // TikTok totales
+  document.getElementById('ttGasto').textContent = fMXN(tt.gasto);
+  document.getElementById('ttImp').textContent = fK(tt.impresiones);
+  document.getElementById('ttAlcance').textContent = fK(tt.alcance);
+  document.getElementById('ttClicks').textContent = fNum(tt.clicks);
+  document.getElementById('ttCtr').textContent = fPct(tt.ctr);
+  document.getElementById('ttCpm').textContent = fMXN(tt.cpm);
+  document.getElementById('ttConv').textContent = fNum(tt.conversiones);
+  document.getElementById('ttCpl').textContent = fMXN(tt.cpl);
+  document.getElementById('ttFrec').textContent = parseFloat(tt.frecuencia||0).toFixed(2)+'x';
+
+  // Campañas Meta
+  const tbMeta = document.querySelector('#tblMetaCampanas tbody');
+  tbMeta.innerHTML = '';
+  (meta.campanas||[]).forEach(c => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td style="max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${c.nombre}</td>
+      <td class="r">${fMXN(c.gasto)}</td>
+      <td class="${parseFloat(c.leads)>0?'gv':'r'}">${fNum(c.leads)}</td>
+      <td class="${parseFloat(c.cpl)>300?'rv':'r'}">${c.cpl>0?fMXN(c.cpl):'—'}</td>
+      <td class="r">${fPct(c.ctr)}</td>`;
+    tbMeta.appendChild(tr);
+  });
+
+  // Campañas TikTok
+  const tbTT = document.querySelector('#tblTikTokCampanas tbody');
+  tbTT.innerHTML = '';
+  (tiktok.campanas||[]).forEach(c => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td style="max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${c.nombre}</td>
+      <td class="r">${fMXN(c.gasto)}</td>
+      <td class="${parseFloat(c.conversiones)>0?'gv':'r'}">${fNum(c.conversiones)}</td>
+      <td class="${parseFloat(c.cpl)>300?'rv':'r'}">${c.cpl>0?fMXN(c.cpl):'—'}</td>
+      <td class="r">${fPct(c.ctr)}</td>`;
+    tbTT.appendChild(tr);
+  });
+
+  // Charts
+  renderChart('chartMeta', chartMeta, meta.tendencia||[], 'Meta Ads', '#1877F2');
+  renderChart('chartTikTok', chartTikTok, tiktok.tendencia||[], 'TikTok Ads', '#FE2C55');
+
+  // Funnel GHL
+  const funnelEl = document.getElementById('funnelGHL');
+  funnelEl.innerHTML = '';
+  const maxEtapa = Math.max(...(ghl.etapas||[]).map(e => e.cantidad), 1);
+  (ghl.etapas||[]).forEach(e => {
+    const pct = (e.cantidad / maxEtapa * 100).toFixed(1);
+    const nombre = STAGE_NAMES[e.nombre] || e.nombre;
+    const div = document.createElement('div');
+    div.className = 'funnel-row';
+    div.innerHTML = `
+      <span class="funnel-label">${nombre}</span>
+      <div class="funnel-bar-wrap">
+        <div class="funnel-bar" style="width:${pct}%">${e.cantidad}</div>
+      </div>
+      <span class="funnel-num">${e.cantidad}</span>`;
+    funnelEl.appendChild(div);
+  });
+
+  // Fuentes
+  const tbFuentes = document.querySelector('#tblFuentes tbody');
+  tbFuentes.innerHTML = '';
+  (ghl.fuentes||[]).forEach(f => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td>${f.nombre}</td><td class="r">${f.cantidad}</td>`;
+    tbFuentes.appendChild(tr);
+  });
+
+  // Razones de pérdida
+  const tbRazones = document.querySelector('#tblRazones tbody');
+  tbRazones.innerHTML = '';
+  if ((ghl.razones_perdida||[]).length === 0) {
+    tbRazones.innerHTML = '<tr><td colspan="2" style="color:var(--gray);text-align:center;padding:16px">Sin datos de pérdida en este periodo</td></tr>';
+  } else {
+    (ghl.razones_perdida||[]).forEach(r => {
+      const nombre = STAGE_NAMES[r.id] || r.id;
+      const tr = document.createElement('tr');
+      tr.innerHTML = `<td>${nombre}</td><td class="rv">${r.cantidad}</td>`;
+      tbRazones.appendChild(tr);
+    });
+  }
+}
+
+// ─── CHART ────────────────────────────────────────────────
+function renderChart(canvasId, chartRef, tendencia, label, color) {
+  const ctx = document.getElementById(canvasId).getContext('2d');
+  if (chartRef) chartRef.destroy();
+
+  const labels = tendencia.map(d => d.fecha.slice(5));
+  const values = tendencia.map(d => parseFloat(d.gasto));
+
+  const chart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [{
+        label,
+        data: values,
+        borderColor: color,
+        backgroundColor: color + '22',
+        borderWidth: 2,
+        pointRadius: 3,
+        pointBackgroundColor: color,
+        fill: true,
+        tension: 0.3
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: '#1C1C1C',
+          borderColor: '#333',
+          borderWidth: 1,
+          titleColor: '#888',
+          bodyColor: '#fff',
+          callbacks: {
+            label: ctx => ' $' + ctx.parsed.y.toLocaleString('es-MX', {minimumFractionDigits:2})
+          }
+        }
+      },
+      scales: {
+        x: { grid: { color: '#1C1C1C' }, ticks: { color: '#555', font: { size: 10 } } },
+        y: {
+          grid: { color: '#1C1C1C' },
+          ticks: {
+            color: '#555', font: { size: 10 },
+            callback: v => '$' + (v/1000).toFixed(1) + 'K'
+          }
+        }
+      }
+    }
+  });
+
+  if (canvasId === 'chartMeta') chartMeta = chart;
+  else chartTikTok = chart;
+}
+
+// ─── INIT ─────────────────────────────────────────────────
+(function init() {
+  const from = document.getElementById('dateFrom');
+  const to = document.getElementById('dateTo');
+  from.value = firstOfMonth();
+  to.value = today();
+  loadData();
+})();
+</script>
+</body>
+</html>
