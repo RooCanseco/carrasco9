@@ -1,364 +1,307 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="es" data-theme="dark">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Carrasco 9 · Dashboard de Reporteo</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Carrasco 9 · Dashboard</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <style>
-@import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600;700&display=swap');
-
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+
+/* ─── TEMA ───────────────────────────────── */
 :root{
-  --red:#C0152B;--red-dark:#8B0F1F;--red-glow:rgba(192,21,43,.15);
-  --dark:#0D0D0D;--dark2:#141414;--dark3:#1C1C1C;--dark4:#242424;
+  --red:#C0152B;--red-dark:#8B0F1F;
+  --font:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;
+  --mono:'SF Mono','Fira Code',monospace;
+  --max:960px;
+}
+[data-theme="dark"]{
+  --bg:#0D0D0D;--bg2:#141414;--bg3:#1C1C1C;--bg4:#242424;
   --border:#2A2A2A;--border2:#333;
-  --white:#FFFFFF;--gray:#888;--gray2:#555;
+  --text:#FFFFFF;--text2:#888;--text3:#555;
   --green:#1DB954;--amber:#F5A623;--blue:#3B8EEA;
-  --font:'DM Sans',sans-serif;--mono:'DM Mono',monospace;
+  --card-bg:#1C1C1C;--input-bg:#242424;
+}
+[data-theme="light"]{
+  --bg:#F0F2F5;--bg2:#FFFFFF;--bg3:#F7F8FA;--bg4:#EAECEF;
+  --border:#E0E0E0;--border2:#CCC;
+  --text:#1A1A1A;--text2:#666;--text3:#999;
+  --green:#0A8A3A;--amber:#B85C00;--blue:#1565C0;
+  --card-bg:#FFFFFF;--input-bg:#F0F2F5;
 }
 
-html,body{min-height:100%;background:var(--dark);color:var(--white);font-family:var(--font);font-size:14px;-webkit-font-smoothing:antialiased}
+html,body{min-height:100%;background:var(--bg);color:var(--text);font-family:var(--font);-webkit-font-smoothing:antialiased;font-size:14px;transition:background .25s,color .25s}
+
+/* ─── WRAP CENTRADO ──────────────────────── */
+.wrap{max-width:var(--max);margin:0 auto;padding:0 16px}
 
 /* ─── HEADER ─────────────────────────────── */
-.header{
-  background:var(--dark2);border-bottom:1px solid var(--border);
-  padding:0 32px;height:56px;
-  display:flex;align-items:center;justify-content:space-between;
-  position:sticky;top:0;z-index:100;
-}
-.header-brand{display:flex;align-items:center;gap:12px}
-.header-brand .dot{width:8px;height:8px;background:var(--red);border-radius:50%}
-.header-brand .name{font-size:13px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--white)}
-.header-brand .sep{color:var(--border2);font-size:13px}
-.header-brand .sub{font-size:12px;color:var(--gray);letter-spacing:.04em}
-.header-right{display:flex;align-items:center;gap:12px}
-.last-update{font-family:var(--mono);font-size:11px;color:var(--gray2)}
-.btn-refresh{
-  background:var(--dark4);border:1px solid var(--border2);color:var(--gray);
-  padding:5px 12px;border-radius:4px;cursor:pointer;font-size:12px;font-family:var(--font);
-  transition:all .2s;display:flex;align-items:center;gap:6px;
-}
-.btn-refresh:hover{border-color:var(--red);color:var(--white)}
-.btn-refresh.loading .icon{animation:spin .8s linear infinite}
+.header{background:var(--bg2);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:100}
+.header-inner{max-width:var(--max);margin:0 auto;padding:10px 16px;display:flex;align-items:center;justify-content:space-between;gap:8px}
+.hbrand{display:flex;align-items:center;gap:8px}
+.hdot{width:8px;height:8px;background:var(--red);border-radius:50%;flex-shrink:0;animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+.hname{font-size:13px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--text)}
+.hsep{color:var(--border2)}
+.hsub{font-size:11px;color:var(--text2)}
+.hright{display:flex;align-items:center;gap:8px}
+.hupdate{font-size:10px;color:var(--text3);font-family:var(--mono)}
+.btn-sm{background:var(--input-bg);border:1px solid var(--border2);color:var(--text2);padding:5px 10px;border-radius:4px;cursor:pointer;font-size:11px;font-family:var(--font);display:flex;align-items:center;gap:4px;transition:all .2s}
+.btn-sm:hover{border-color:var(--red);color:var(--text)}
+.btn-sm.loading .ri{animation:spin .8s linear infinite;display:inline-block}
 @keyframes spin{to{transform:rotate(360deg)}}
+.btn-theme{font-size:14px;padding:5px 8px}
 
-/* ─── FILTERS ────────────────────────────── */
-.filters{
-  background:var(--dark2);border-bottom:1px solid var(--border);
-  padding:12px 32px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;
-}
-.filter-label{font-size:11px;color:var(--gray);text-transform:uppercase;letter-spacing:.08em}
-.filter-btn{
-  background:var(--dark4);border:1px solid var(--border2);color:var(--gray);
-  padding:5px 14px;border-radius:4px;cursor:pointer;font-size:12px;font-family:var(--font);
-  transition:all .2s;
-}
-.filter-btn:hover,.filter-btn.active{background:var(--red);border-color:var(--red);color:var(--white)}
-.date-inputs{display:flex;align-items:center;gap:8px;margin-left:auto}
-.date-input{
-  background:var(--dark4);border:1px solid var(--border2);color:var(--white);
-  padding:5px 10px;border-radius:4px;font-size:12px;font-family:var(--mono);
-  outline:none;
-}
-.date-input:focus{border-color:var(--red)}
-.btn-apply{
-  background:var(--red);border:none;color:var(--white);
-  padding:5px 16px;border-radius:4px;cursor:pointer;font-size:12px;font-weight:600;
-  font-family:var(--font);transition:background .2s;
-}
-.btn-apply:hover{background:var(--red-dark)}
+/* ─── FILTERS ─────────────────────────────── */
+.filters{background:var(--bg2);border-bottom:1px solid var(--border)}
+.filters-inner{max-width:var(--max);margin:0 auto;padding:10px 16px;display:flex;flex-direction:column;gap:8px}
+.frow{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.flabel{font-size:10px;color:var(--text2);text-transform:uppercase;letter-spacing:.08em}
+.fbtn{background:var(--input-bg);border:1px solid var(--border2);color:var(--text2);padding:5px 12px;border-radius:4px;cursor:pointer;font-size:11px;font-family:var(--font);transition:all .2s;white-space:nowrap}
+.fbtn:hover,.fbtn.active{background:var(--red);border-color:var(--red);color:#fff}
+.fdate{background:var(--input-bg);border:1px solid var(--border2);color:var(--text);padding:5px 8px;border-radius:4px;font-size:11px;font-family:var(--mono);outline:none;flex:1;min-width:110px}
+.fdate:focus{border-color:var(--red)}
+.fapply{background:var(--red);border:none;color:#fff;padding:5px 14px;border-radius:4px;cursor:pointer;font-size:11px;font-weight:700;font-family:var(--font)}
 
-/* ─── MAIN ───────────────────────────────── */
-.main{padding:24px 32px;display:flex;flex-direction:column;gap:24px}
+/* ─── MAIN ────────────────────────────────── */
+.main{padding:20px 0 40px}
+.section{margin-bottom:28px}
 
-/* ─── SECTION HEADER ─────────────────────── */
-.section-head{
-  display:flex;align-items:center;gap:10px;margin-bottom:14px;
-}
-.section-tag{
-  background:var(--red);color:var(--white);
-  font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;
-  padding:3px 10px;border-radius:2px;
-}
-.section-title{font-size:15px;font-weight:600;color:var(--white)}
-.section-sub{font-size:12px;color:var(--gray);margin-left:auto;font-family:var(--mono)}
+/* ─── SECTION HEAD ────────────────────────── */
+.sh{display:flex;align-items:center;gap:8px;margin-bottom:14px;flex-wrap:wrap}
+.stag{background:var(--red);color:#fff;font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;padding:3px 8px;border-radius:2px;flex-shrink:0}
+.stitle{font-size:14px;font-weight:600;color:var(--text)}
+.ssub{font-size:11px;color:var(--text2);font-family:var(--mono);margin-left:auto}
+.sbadge{background:var(--bg4);border:1px solid var(--border);color:var(--text2);font-size:9px;padding:2px 7px;border-radius:20px;font-weight:600}
 
-/* ─── KPI GRID ───────────────────────────── */
-.kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px}
-.kpi{
-  background:var(--dark3);border:1px solid var(--border);border-radius:6px;
-  padding:16px;position:relative;overflow:hidden;transition:border-color .2s;
-}
-.kpi:hover{border-color:var(--border2)}
-.kpi::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--border)}
-.kpi.accent::before{background:var(--red)}
-.kpi.green::before{background:var(--green)}
-.kpi.amber::before{background:var(--amber)}
-.kpi.blue::before{background:var(--blue)}
-.kpi-label{font-size:10px;color:var(--gray);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px}
-.kpi-val{font-size:24px;font-weight:700;color:var(--white);line-height:1;margin-bottom:4px;font-family:var(--mono)}
-.kpi.accent .kpi-val{color:var(--red)}
-.kpi-sub{font-size:11px;color:var(--gray2)}
+/* ─── PLATFORM TABS ───────────────────────── */
+.ptabs{display:flex;gap:2px;background:var(--bg4);padding:3px;border-radius:6px;width:fit-content;margin-bottom:16px}
+.ptab{padding:6px 16px;border-radius:4px;cursor:pointer;font-size:11px;font-weight:600;color:var(--text2);transition:all .2s;border:none;background:none;font-family:var(--font)}
+.ptab.active{background:var(--bg2);color:var(--text);box-shadow:0 1px 3px rgba(0,0,0,.2)}
+.ptab.meta.active{color:#1877F2}
+.ptab.tiktok.active{color:#FE2C55}
+.platform-panel{display:none}.platform-panel.active{display:block}
 
-/* ─── GRID 2 COL ─────────────────────────── */
-.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
-.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px}
-@media(max-width:900px){.grid2,.grid3{grid-template-columns:1fr}}
+/* ─── KPI GRID ────────────────────────────── */
+.kgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+@media(min-width:480px){.kgrid{grid-template-columns:repeat(3,1fr)}}
+@media(min-width:700px){.kgrid{grid-template-columns:repeat(5,1fr)}}
 
-/* ─── CARD ───────────────────────────────── */
-.card{
-  background:var(--dark3);border:1px solid var(--border);border-radius:6px;
-  padding:20px;
-}
-.card-title{font-size:12px;font-weight:600;color:var(--white);margin-bottom:16px;text-transform:uppercase;letter-spacing:.06em}
+.kcard{background:var(--card-bg);border:1px solid var(--border);border-radius:8px;padding:12px;position:relative;overflow:hidden;transition:border-color .2s}
+.kcard::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--border)}
+.kcard.red::before{background:var(--red)}
+.kcard.grn::before{background:var(--green)}
+.kcard.blu::before{background:var(--blue)}
+.kcard.amb::before{background:var(--amber)}
+.klabel{font-size:9px;color:var(--text2);text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px}
+.kval{font-size:20px;font-weight:700;line-height:1;margin-bottom:4px;font-family:var(--mono);color:var(--text)}
+.kcard.red .kval{color:var(--red)}
+.kbadge{display:inline-flex;align-items:center;gap:2px;font-size:10px;font-weight:600;padding:2px 6px;border-radius:12px;margin-top:3px}
+.kbadge.up{background:rgba(29,185,84,.15);color:var(--green)}
+.kbadge.dn{background:rgba(192,21,43,.15);color:#ff6b7a}
+.kbadge.neu{background:var(--bg4);color:var(--text2)}
+.ksub{font-size:9px;color:var(--text3);margin-top:2px}
 
-/* ─── TABLE ──────────────────────────────── */
+/* ─── AD LIST ─────────────────────────────── */
+.ad-list{display:flex;flex-direction:column;gap:10px}
+.ad-row{background:var(--bg4);border:1px solid var(--border);border-radius:8px;padding:12px;display:flex;gap:12px;align-items:flex-start}
+.ad-img{width:56px;height:56px;border-radius:6px;object-fit:cover;background:var(--bg3);flex-shrink:0;border:1px solid var(--border)}
+.ad-ph{width:56px;height:56px;border-radius:6px;background:var(--bg3);flex-shrink:0;border:1px solid var(--border);display:flex;align-items:center;justify-content:center;color:var(--text3);font-size:18px}
+.ad-body{flex:1;min-width:0}
+.ad-top{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:3px}
+.ad-name{font-size:12px;font-weight:600;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1}
+.ad-st{font-size:9px;font-weight:700;padding:2px 7px;border-radius:20px;flex-shrink:0}
+.ad-st.active{background:rgba(29,185,84,.15);color:var(--green)}
+.ad-st.paused{background:rgba(245,166,35,.15);color:var(--amber)}
+.ad-st.other{background:var(--bg3);color:var(--text2)}
+.ad-meta{font-size:10px;color:var(--text3);margin-bottom:8px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ad-metrics{display:flex;gap:8px;flex-wrap:wrap}
+.am{min-width:46px}
+.am-l{font-size:8px;color:var(--text2);text-transform:uppercase;letter-spacing:.05em}
+.am-v{font-size:12px;font-weight:700;font-family:var(--mono);color:var(--text)}
+.am-v.g{color:var(--green)}.am-v.r{color:var(--red)}.am-v.a{color:var(--amber)}
+
+/* ─── CHART ───────────────────────────────── */
+.chart-wrap{position:relative;height:160px}
+.card{background:var(--card-bg);border:1px solid var(--border);border-radius:8px;padding:14px}
+.card-title{font-size:11px;font-weight:700;color:var(--text);margin-bottom:12px;text-transform:uppercase;letter-spacing:.06em}
+
+/* ─── TABLE ───────────────────────────────── */
 .tbl{width:100%;border-collapse:collapse;font-size:12px}
-.tbl thead th{
-  padding:7px 10px;text-align:left;
-  font-size:10px;font-weight:600;color:var(--gray);
-  text-transform:uppercase;letter-spacing:.06em;
-  border-bottom:1px solid var(--border);
-}
-.tbl thead th.r{text-align:right}
-.tbl tbody tr{border-bottom:1px solid var(--border);transition:background .15s}
-.tbl tbody tr:hover{background:var(--dark4)}
-.tbl tbody tr:last-child{border-bottom:none}
-.tbl tbody td{padding:8px 10px;color:var(--white)}
-.tbl tbody td.r{text-align:right;font-family:var(--mono);color:var(--gray)}
-.tbl tbody td.rv{text-align:right;font-family:var(--mono);color:var(--red);font-weight:600}
-.tbl tbody td.gv{text-align:right;font-family:var(--mono);color:var(--green);font-weight:600}
-.tbl tbody td.av{text-align:right;font-family:var(--mono);color:var(--amber);font-weight:600}
+.tbl th{padding:6px 8px;text-align:left;font-size:9px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.06em;border-bottom:1px solid var(--border)}
+.tbl th.r{text-align:right}
+.tbl td{padding:7px 8px;border-bottom:1px solid var(--border);color:var(--text);font-size:11px}
+.tbl tr:last-child td{border-bottom:none}
+.tbl td.r{text-align:right;font-family:var(--mono);color:var(--text2)}
+.tbl td.rv{text-align:right;font-family:var(--mono);color:var(--red);font-weight:600}
+.tbl td.gv{text-align:right;font-family:var(--mono);color:var(--green);font-weight:600}
 
-/* ─── FUNNEL ─────────────────────────────── */
+/* ─── ETAPA BADGE ─────────────────────────── */
+.etapa-badge{display:inline-block;font-size:9px;font-weight:600;padding:2px 7px;border-radius:20px;background:var(--bg4);color:var(--text2);border:1px solid var(--border)}
+
+/* ─── GRID ────────────────────────────────── */
+.grid2{display:grid;grid-template-columns:1fr;gap:12px}
+@media(min-width:600px){.grid2{grid-template-columns:1fr 1fr}}
+
+/* ─── FUNNEL BARS ─────────────────────────── */
 .funnel{display:flex;flex-direction:column;gap:6px}
-.funnel-row{
-  display:flex;align-items:center;gap:10px;
-}
-.funnel-label{font-size:12px;color:var(--gray);min-width:130px}
-.funnel-bar-wrap{flex:1;background:var(--dark4);border-radius:3px;height:24px;overflow:hidden}
-.funnel-bar{height:100%;background:var(--red);border-radius:3px;display:flex;align-items:center;padding-left:8px;font-size:11px;font-weight:600;color:var(--white);transition:width .6s ease;min-width:30px}
-.funnel-num{font-size:12px;font-family:var(--mono);color:var(--white);min-width:24px;text-align:right}
+.frow{display:flex;align-items:center;gap:8px}
+.flbl{font-size:11px;color:var(--text2);min-width:130px}
+.fbw{flex:1;background:var(--bg4);border-radius:3px;height:22px;overflow:hidden}
+.fbf{height:100%;background:var(--red);border-radius:3px;display:flex;align-items:center;padding-left:8px;font-size:10px;font-weight:600;color:#fff;transition:width .6s ease;min-width:28px}
+.fnum{font-size:11px;font-family:var(--mono);color:var(--text);min-width:20px;text-align:right}
 
-/* ─── PLATFORM TABS ──────────────────────── */
-.platform-tabs{display:flex;gap:2px;margin-bottom:16px;background:var(--dark4);padding:3px;border-radius:6px;width:fit-content}
-.ptab{
-  padding:5px 16px;border-radius:4px;cursor:pointer;
-  font-size:12px;font-weight:500;color:var(--gray);transition:all .2s;
-}
-.ptab.active{background:var(--dark2);color:var(--white);box-shadow:0 1px 3px rgba(0,0,0,.3)}
+/* ─── LOADING ─────────────────────────────── */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.85);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:14px}
+.overlay.hidden{display:none}
+.spinner{width:36px;height:36px;border:3px solid var(--border2);border-top-color:var(--red);border-radius:50%;animation:spin .7s linear infinite}
+.ov-text{font-size:12px;color:var(--text2);font-family:var(--mono)}
+.ebar{background:rgba(192,21,43,.1);border:1px solid rgba(192,21,43,.3);color:#ff6b7a;padding:10px 16px;font-size:12px;display:none;text-align:center}
+.ebar.show{display:block}
 
-/* ─── PILL TAG ───────────────────────────── */
-.pill{display:inline-block;font-size:10px;padding:2px 8px;border-radius:20px;font-weight:600}
-.pill-red{background:rgba(192,21,43,.2);color:#ff6b7a}
-.pill-green{background:rgba(29,185,84,.15);color:var(--green)}
-.pill-amber{background:rgba(245,166,35,.15);color:var(--amber)}
-.pill-blue{background:rgba(59,142,234,.15);color:var(--blue)}
+/* ─── FOOTER ──────────────────────────────── */
+.footer{border-top:1px solid var(--border);padding:14px 0}
+.footer-inner{max-width:var(--max);margin:0 auto;padding:0 16px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:6px}
+.footer span{font-size:10px;color:var(--text3)}
+.footer .brand{color:var(--text2);font-weight:600}
 
-/* ─── CHART CONTAINER ────────────────────── */
-.chart-wrap{position:relative;height:200px}
-
-/* ─── LOADING OVERLAY ────────────────────── */
-.loading-overlay{
-  position:fixed;inset:0;background:rgba(13,13,13,.85);
-  display:flex;flex-direction:column;align-items:center;justify-content:center;
-  z-index:200;gap:16px;
-}
-.loading-overlay.hidden{display:none}
-.spinner{
-  width:40px;height:40px;border:3px solid var(--border2);
-  border-top-color:var(--red);border-radius:50%;
-  animation:spin .7s linear infinite;
-}
-.loading-text{font-size:13px;color:var(--gray);font-family:var(--mono)}
-
-/* ─── ERROR STATE ────────────────────────── */
-.error-bar{
-  background:rgba(192,21,43,.1);border:1px solid rgba(192,21,43,.3);
-  color:#ff6b7a;padding:10px 32px;font-size:12px;
-  display:none;
-}
-.error-bar.show{display:block}
-
-/* ─── DIVIDER ────────────────────────────── */
-.section-divider{height:1px;background:var(--border);margin:4px 0}
-
-/* ─── TOTALS ROW ─────────────────────────── */
-.totals-combined{
-  display:grid;grid-template-columns:1fr 1fr;gap:12px;
-  background:var(--dark4);border:1px solid var(--border);border-radius:6px;
-  padding:16px;
-}
-.totals-combined .platform-label{
-  font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;
-  margin-bottom:10px;padding-bottom:8px;border-bottom:1px solid var(--border);
-}
-.totals-combined .platform-label.meta{color:#1877F2}
-.totals-combined .platform-label.tiktok{color:#FE2C55}
-.totals-row{display:flex;justify-content:space-between;padding:3px 0;border-bottom:1px solid var(--border)}
-.totals-row:last-child{border-bottom:none}
-.totals-k{font-size:11px;color:var(--gray)}
-.totals-v{font-size:11px;font-family:var(--mono);color:var(--white);font-weight:500}
-
-/* ─── FOOTER ─────────────────────────────── */
-.footer{
-  padding:16px 32px;border-top:1px solid var(--border);
-  display:flex;align-items:center;justify-content:space-between;
-}
-.footer span{font-size:11px;color:var(--gray2)}
-.footer .brand{color:var(--gray);font-weight:600}
+/* ─── TODAY TAG ───────────────────────────── */
+.today-tag{display:inline-flex;align-items:center;gap:4px;background:rgba(29,185,84,.1);border:1px solid rgba(29,185,84,.3);color:var(--green);font-size:9px;font-weight:700;padding:2px 8px;border-radius:20px}
+.today-dot{width:5px;height:5px;background:var(--green);border-radius:50%;animation:pulse 1.5s infinite}
 </style>
 </head>
 <body>
 
-<!-- LOADING -->
-<div class="loading-overlay" id="loading">
+<div class="overlay" id="loading">
   <div class="spinner"></div>
-  <div class="loading-text">Cargando datos en tiempo real...</div>
+  <div class="ov-text">Cargando datos en tiempo real...</div>
 </div>
-
-<!-- ERROR -->
-<div class="error-bar" id="errorBar"></div>
+<div class="ebar" id="ebar"></div>
 
 <!-- HEADER -->
 <div class="header">
-  <div class="header-brand">
-    <div class="dot"></div>
-    <span class="name">Carrasco 9</span>
-    <span class="sep">|</span>
-    <span class="sub">Dashboard de Reporteo</span>
-  </div>
-  <div class="header-right">
-    <span class="last-update" id="lastUpdate">—</span>
-    <button class="btn-refresh" onclick="loadData()">
-      <span class="icon">↺</span> Actualizar
-    </button>
+  <div class="header-inner">
+    <div class="hbrand">
+      <div class="hdot"></div>
+      <span class="hname">Carrasco 9</span>
+      <span class="hsep">|</span>
+      <span class="hsub">Dashboard</span>
+    </div>
+    <div class="hright">
+      <span class="hupdate" id="lastUpdate">—</span>
+      <button class="btn-sm btn-theme" onclick="toggleTheme()" title="Cambiar tema" id="themeBtn">☀️</button>
+      <button class="btn-sm" onclick="loadData()"><span class="ri">↺</span> Actualizar</button>
+    </div>
   </div>
 </div>
 
 <!-- FILTERS -->
 <div class="filters">
-  <span class="filter-label">Periodo</span>
-  <button class="filter-btn" onclick="setPreset('today')">Hoy</button>
-  <button class="filter-btn" onclick="setPreset('week')">7 días</button>
-  <button class="filter-btn active" onclick="setPreset('month')">Este mes</button>
-  <button class="filter-btn" onclick="setPreset('last30')">Últimos 30 días</button>
-  <div class="date-inputs">
-    <input type="date" class="date-input" id="dateFrom">
-    <span style="color:var(--gray);font-size:12px">a</span>
-    <input type="date" class="date-input" id="dateTo">
-    <button class="btn-apply" onclick="loadData()">Aplicar</button>
+  <div class="filters-inner">
+    <div class="frow">
+      <span class="flabel">Periodo</span>
+      <button class="fbtn" onclick="setPreset('today',this)">Hoy</button>
+      <button class="fbtn" onclick="setPreset('week',this)">7 días</button>
+      <button class="fbtn" onclick="setPreset('14days',this)">14 días</button>
+      <button class="fbtn active" onclick="setPreset('month',this)">Este mes</button>
+      <button class="fbtn" onclick="setPreset('lastmonth',this)">Mes pasado</button>
+    </div>
+    <div class="frow">
+      <input type="date" class="fdate" id="dateFrom">
+      <span style="color:var(--text2);font-size:11px">a</span>
+      <input type="date" class="fdate" id="dateTo">
+      <button class="fapply" onclick="loadData()">Aplicar</button>
+    </div>
   </div>
 </div>
 
 <!-- MAIN -->
 <div class="main">
+<div class="wrap">
 
-  <!-- RESUMEN COMBINADO -->
-  <div>
-    <div class="section-head">
-      <span class="section-tag">Resumen</span>
-      <span class="section-title">Inversión total en medios</span>
-      <span class="section-sub" id="periodoLabel">—</span>
+  <!-- RESUMEN -->
+  <div class="section">
+    <div class="sh">
+      <span class="stag">Resumen</span>
+      <span class="stitle">Inversión total en medios</span>
+      <span class="ssub" id="periodoLabel">—</span>
     </div>
-    <div class="kpi-grid" id="kpiResumen">
-      <div class="kpi accent"><div class="kpi-label">Gasto total</div><div class="kpi-val" id="kpiGastoTotal">—</div><div class="kpi-sub">Meta + TikTok</div></div>
-      <div class="kpi blue"><div class="kpi-label">Total leads</div><div class="kpi-val" id="kpiLeadsTotal">—</div><div class="kpi-sub">Ambas plataformas</div></div>
-      <div class="kpi"><div class="kpi-label">CPL combinado</div><div class="kpi-val" id="kpiCplTotal">—</div><div class="kpi-sub">Costo por lead</div></div>
-      <div class="kpi"><div class="kpi-label">Impresiones</div><div class="kpi-val" id="kpiImpTotal">—</div><div class="kpi-sub">Total ambas plataformas</div></div>
-      <div class="kpi green"><div class="kpi-label">Oportunidades CRM</div><div class="kpi-val" id="kpiOpsAbiertas">—</div><div class="kpi-sub">Abiertas actualmente</div></div>
-      <div class="kpi amber"><div class="kpi-label">Perdidas</div><div class="kpi-val" id="kpiOpsPerdidas">—</div><div class="kpi-sub">Del periodo</div></div>
+    <div class="kgrid">
+      <div class="kcard red"><div class="klabel">Gasto total</div><div class="kval" id="rGasto">—</div><div class="ksub">Meta + TikTok</div></div>
+      <div class="kcard blu"><div class="klabel">Resultados</div><div class="kval" id="rRes">—</div><div class="ksub">Leads + WhatsApp</div></div>
+      <div class="kcard"><div class="klabel">CPR combinado</div><div class="kval" id="rCpr">—</div><div class="ksub">Costo por resultado</div></div>
+      <div class="kcard"><div class="klabel">Impresiones</div><div class="kval" id="rImp">—</div><div class="ksub">Ambas plataformas</div></div>
+      <div class="kcard grn"><div class="klabel">Ops abiertas</div><div class="kval" id="rOps">—</div><div class="ksub">Estado actual CRM</div></div>
     </div>
   </div>
 
-  <!-- META + TIKTOK LADO A LADO -->
-  <div>
-    <div class="section-head">
-      <span class="section-tag">Publicidad</span>
-      <span class="section-title">Meta Ads vs TikTok Ads</span>
+  <!-- TABS PUBLICIDAD -->
+  <div class="section">
+    <div class="sh">
+      <span class="stag">Publicidad</span>
+      <span class="stitle">Rendimiento por plataforma</span>
     </div>
-    <div class="totals-combined">
-      <div>
-        <div class="platform-label meta">▶ Meta Ads</div>
-        <div class="totals-row"><span class="totals-k">Gasto</span><span class="totals-v" id="metaGasto">—</span></div>
-        <div class="totals-row"><span class="totals-k">Impresiones</span><span class="totals-v" id="metaImp">—</span></div>
-        <div class="totals-row"><span class="totals-k">Alcance</span><span class="totals-v" id="metaAlcance">—</span></div>
-        <div class="totals-row"><span class="totals-k">Clicks</span><span class="totals-v" id="metaClicks">—</span></div>
-        <div class="totals-row"><span class="totals-k">CTR</span><span class="totals-v" id="metaCtr">—</span></div>
-        <div class="totals-row"><span class="totals-k">CPM</span><span class="totals-v" id="metaCpm">—</span></div>
-        <div class="totals-row"><span class="totals-k">Leads</span><span class="totals-v" id="metaLeads">—</span></div>
-        <div class="totals-row"><span class="totals-k">CPL</span><span class="totals-v" id="metaCpl">—</span></div>
-        <div class="totals-row"><span class="totals-k">Frecuencia</span><span class="totals-v" id="metaFrec">—</span></div>
+    <div class="ptabs">
+      <button class="ptab meta active" onclick="switchTab('meta',this)">▶ Meta Ads</button>
+      <button class="ptab tiktok" onclick="switchTab('tiktok',this)">▶ TikTok Ads</button>
+    </div>
+
+    <!-- META PANEL -->
+    <div class="platform-panel active" id="panel-meta">
+      <div class="kgrid" style="margin-bottom:16px">
+        <div class="kcard red"><div class="klabel">Gasto</div><div class="kval" id="mGasto">—</div><div id="mGastoB"></div></div>
+        <div class="kcard"><div class="klabel">Impresiones</div><div class="kval" id="mImp">—</div><div id="mImpB"></div></div>
+        <div class="kcard"><div class="klabel">Alcance</div><div class="kval" id="mAlc">—</div><div id="mAlcB"></div></div>
+        <div class="kcard"><div class="klabel">Clicks</div><div class="kval" id="mClk">—</div><div id="mClkB"></div></div>
+        <div class="kcard blu"><div class="klabel">Resultados</div><div class="kval" id="mRes">—</div><div id="mResB"></div><div class="ksub" id="mResSub">—</div></div>
+        <div class="kcard"><div class="klabel">CTR</div><div class="kval" id="mCtr">—</div><div id="mCtrB"></div></div>
+        <div class="kcard"><div class="klabel">CPM</div><div class="kval" id="mCpm">—</div><div id="mCpmB"></div></div>
+        <div class="kcard"><div class="klabel">LTR</div><div class="kval" id="mLtr">—</div><div id="mLtrB"></div></div>
+        <div class="kcard"><div class="klabel">CPR</div><div class="kval" id="mCpr">—</div><div id="mCprB"></div></div>
+        <div class="kcard"><div class="klabel">Frecuencia</div><div class="kval" id="mFrq">—</div><div id="mFrqB"></div></div>
       </div>
-      <div>
-        <div class="platform-label tiktok">▶ TikTok Ads</div>
-        <div class="totals-row"><span class="totals-k">Gasto</span><span class="totals-v" id="ttGasto">—</span></div>
-        <div class="totals-row"><span class="totals-k">Impresiones</span><span class="totals-v" id="ttImp">—</span></div>
-        <div class="totals-row"><span class="totals-k">Alcance</span><span class="totals-v" id="ttAlcance">—</span></div>
-        <div class="totals-row"><span class="totals-k">Clicks</span><span class="totals-v" id="ttClicks">—</span></div>
-        <div class="totals-row"><span class="totals-k">CTR</span><span class="totals-v" id="ttCtr">—</span></div>
-        <div class="totals-row"><span class="totals-k">CPM</span><span class="totals-v" id="ttCpm">—</span></div>
-        <div class="totals-row"><span class="totals-k">Conversiones</span><span class="totals-v" id="ttConv">—</span></div>
-        <div class="totals-row"><span class="totals-k">CPL</span><span class="totals-v" id="ttCpl">—</span></div>
-        <div class="totals-row"><span class="totals-k">Frecuencia</span><span class="totals-v" id="ttFrec">—</span></div>
+      <div class="sh"><span class="stag" style="background:var(--bg4);color:var(--text2)">Anuncios</span><span class="stitle" style="font-size:13px">Rendimiento por anuncio</span></div>
+      <div class="ad-list" id="metaAds" style="margin-bottom:16px"></div>
+      <div class="sh"><span class="stag" style="background:var(--bg4);color:var(--text2)">Tendencia</span><span class="stitle" style="font-size:13px">Gasto diario Meta</span></div>
+      <div class="card"><div class="chart-wrap"><canvas id="chartMeta"></canvas></div></div>
+    </div>
+
+    <!-- TIKTOK PANEL -->
+    <div class="platform-panel" id="panel-tiktok">
+      <div class="kgrid" style="margin-bottom:16px">
+        <div class="kcard red"><div class="klabel">Gasto</div><div class="kval" id="tGasto">—</div><div id="tGastoB"></div></div>
+        <div class="kcard"><div class="klabel">Impresiones</div><div class="kval" id="tImp">—</div><div id="tImpB"></div></div>
+        <div class="kcard"><div class="klabel">Alcance</div><div class="kval" id="tAlc">—</div><div id="tAlcB"></div></div>
+        <div class="kcard"><div class="klabel">Clicks</div><div class="kval" id="tClk">—</div><div id="tClkB"></div></div>
+        <div class="kcard blu"><div class="klabel">Conversiones</div><div class="kval" id="tConv">—</div><div id="tConvB"></div></div>
+        <div class="kcard"><div class="klabel">CTR</div><div class="kval" id="tCtr">—</div><div id="tCtrB"></div></div>
+        <div class="kcard"><div class="klabel">CPM</div><div class="kval" id="tCpm">—</div><div id="tCpmB"></div></div>
+        <div class="kcard"><div class="klabel">LTR</div><div class="kval" id="tLtr">—</div><div id="tLtrB"></div></div>
+        <div class="kcard"><div class="klabel">CPR</div><div class="kval" id="tCpr">—</div><div id="tCprB"></div></div>
+        <div class="kcard"><div class="klabel">Frecuencia</div><div class="kval" id="tFrq">—</div><div id="tFrqB"></div></div>
       </div>
+      <div class="sh"><span class="stag" style="background:var(--bg4);color:var(--text2)">Anuncios</span><span class="stitle" style="font-size:13px">Rendimiento por anuncio</span></div>
+      <div class="ad-list" id="tiktokAds" style="margin-bottom:16px"></div>
+      <div class="sh"><span class="stag" style="background:var(--bg4);color:var(--text2)">Tendencia</span><span class="stitle" style="font-size:13px">Gasto diario TikTok</span></div>
+      <div class="card"><div class="chart-wrap"><canvas id="chartTikTok"></canvas></div></div>
     </div>
   </div>
 
-  <!-- CAMPAÑAS -->
-  <div>
-    <div class="section-head">
-      <span class="section-tag">Campañas</span>
-      <span class="section-title">Rendimiento por campaña</span>
+  <!-- CRM -->
+  <div class="section">
+    <div class="sh">
+      <span class="stag">CRM</span>
+      <span class="stitle">GoHighLevel</span>
+      <span class="today-tag"><span class="today-dot"></span>Al día de hoy</span>
     </div>
-    <div class="grid2">
-      <div class="card">
-        <div class="card-title" style="color:#1877F2">Meta Ads</div>
-        <table class="tbl" id="tblMetaCampanas">
-          <thead><tr><th>Campaña</th><th class="r">Gasto</th><th class="r">Leads</th><th class="r">CPL</th><th class="r">CTR</th></tr></thead>
-          <tbody></tbody>
-        </table>
-      </div>
-      <div class="card">
-        <div class="card-title" style="color:#FE2C55">TikTok Ads</div>
-        <table class="tbl" id="tblTikTokCampanas">
-          <thead><tr><th>Campaña</th><th class="r">Gasto</th><th class="r">Conv.</th><th class="r">CPL</th><th class="r">CTR</th></tr></thead>
-          <tbody></tbody>
-        </table>
-      </div>
-    </div>
-  </div>
 
-  <!-- TENDENCIA -->
-  <div>
-    <div class="section-head">
-      <span class="section-tag">Tendencia</span>
-      <span class="section-title">Gasto diario</span>
+    <!-- Embudo -->
+    <div class="card" style="margin-bottom:12px">
+      <div class="card-title">Distribución del embudo</div>
+      <div class="funnel" id="funnelGHL"></div>
     </div>
-    <div class="grid2">
-      <div class="card">
-        <div class="card-title" style="color:#1877F2">Meta Ads — Gasto diario</div>
-        <div class="chart-wrap"><canvas id="chartMeta"></canvas></div>
-      </div>
-      <div class="card">
-        <div class="card-title" style="color:#FE2C55">TikTok Ads — Gasto diario</div>
-        <div class="chart-wrap"><canvas id="chartTikTok"></canvas></div>
-      </div>
-    </div>
-  </div>
 
-  <!-- CRM GHL -->
-  <div>
-    <div class="section-head">
-      <span class="section-tag">CRM</span>
-      <span class="section-title">Pipeline GoHighLevel</span>
-    </div>
-    <div class="grid3">
-      <div class="card" style="grid-column:span 2">
-        <div class="card-title">Distribución del embudo</div>
-        <div class="funnel" id="funnelGHL"></div>
-      </div>
+    <div class="grid2" style="margin-bottom:12px">
       <div class="card">
         <div class="card-title">Fuente de leads</div>
         <table class="tbl" id="tblFuentes">
@@ -366,292 +309,267 @@ html,body{min-height:100%;background:var(--dark);color:var(--white);font-family:
           <tbody></tbody>
         </table>
       </div>
+      <div class="card">
+        <div class="card-title">Razones de pérdida</div>
+        <table class="tbl" id="tblRazones">
+          <thead><tr><th>Razón</th><th class="r">N</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
     </div>
-  </div>
 
-  <!-- RAZONES DE PÉRDIDA -->
-  <div>
-    <div class="section-head">
-      <span class="section-tag">CRM</span>
-      <span class="section-title">Razones de pérdida</span>
-    </div>
+    <!-- Leads recientes -->
     <div class="card">
-      <table class="tbl" id="tblRazones">
-        <thead><tr><th>Razón</th><th class="r">Cantidad</th></tr></thead>
-        <tbody></tbody>
-      </table>
+      <div class="card-title">Leads recientes — últimos 15</div>
+      <div style="overflow-x:auto">
+        <table class="tbl" id="tblLeads">
+          <thead>
+            <tr>
+              <th>Nombre</th>
+              <th>Fecha entrada</th>
+              <th>Fuente</th>
+              <th>Etapa actual</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
     </div>
   </div>
 
-</div>
+</div><!-- /wrap -->
+</div><!-- /main -->
 
-<!-- FOOTER -->
 <div class="footer">
-  <span>Datos en tiempo real via Windsor.ai · GHL</span>
-  <span class="brand">Lead 2 Close Protocol · canseco.mx</span>
+  <div class="footer-inner">
+    <span>Datos en tiempo real · Windsor.ai · GoHighLevel</span>
+    <span class="brand">Lead 2 Close Protocol · canseco.mx</span>
+  </div>
 </div>
 
 <script>
-// ─── CONFIG ──────────────────────────────────────────────
-const WEBHOOK_URL = 'https://flows.canseco.io/webhook/carrasco9-dashboard';
+const WEBHOOK = 'https://flows.canseco.io/webhook/carrasco9-dashboard';
+let chartMeta = null, chartTT = null;
 
-const STAGE_NAMES = {
-  'bc8e1607-0092-4842-a799-15dfc16fca1b': 'Nuevo Lead',
-  '44011272-21aa-41a2-adb1-fea9c29337ca': 'Contactado',
-  'd085a467-90e7-4475-953b-71d8ae6df77c': 'Seguimiento a Cita',
-  '42fa0920-8c6f-49e9-a598-47cd42ad0595': 'Cita Agendada',
-  '7710c30e-04ea-490a-82f3-115e5f1b6be3': 'Cita Concretada',
-  'e52c3c20-e7e0-4351-875a-5c091faa96a0': 'Seguimiento a Cierre',
-  '83b0ef7c-73ea-4ee3-b30e-0a1030e3ad97': 'Negociación',
-  '685fe4cd-6ff3-45f0-abda-1f34d92b923f': 'No Contesta',
-  'b139706a-e7cc-4abd-86a6-b9d480a293d4': 'Descartado',
-  'Sin razón': 'Sin razón registrada',
-  '69e342d15cc1bf04d7647798': 'No contestó (workflow)'
+// ─── THEME ──────────────────────────────────
+function toggleTheme() {
+  const html = document.documentElement;
+  const isDark = html.getAttribute('data-theme') === 'dark';
+  html.setAttribute('data-theme', isDark ? 'light' : 'dark');
+  document.getElementById('themeBtn').textContent = isDark ? '🌙' : '☀️';
+  if (chartMeta) { chartMeta.destroy(); chartMeta = null; }
+  if (chartTT) { chartTT.destroy(); chartTT = null; }
+  if (window._lastData) render(window._lastData, document.getElementById('dateFrom').value, document.getElementById('dateTo').value);
+}
+
+// ─── TABS ────────────────────────────────────
+function switchTab(tab, btn) {
+  document.querySelectorAll('.ptab').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.platform-panel').forEach(p => p.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('panel-'+tab).classList.add('active');
+}
+
+// ─── DATES ──────────────────────────────────
+const toDay = () => new Date().toISOString().split('T')[0];
+const daysAgo = n => { const d = new Date(); d.setDate(d.getDate()-n); return d.toISOString().split('T')[0]; };
+const firstMonth = () => { const d = new Date(); return new Date(d.getFullYear(),d.getMonth(),1).toISOString().split('T')[0]; };
+const lastMonthRange = () => {
+  const d = new Date();
+  const f = new Date(d.getFullYear(),d.getMonth()-1,1);
+  const t = new Date(d.getFullYear(),d.getMonth(),0);
+  return { f: f.toISOString().split('T')[0], t: t.toISOString().split('T')[0] };
 };
 
-let chartMeta = null, chartTikTok = null;
-
-// ─── DATE HELPERS ─────────────────────────────────────────
-function today() { return new Date().toISOString().split('T')[0]; }
-function daysAgo(n) {
-  const d = new Date();
-  d.setDate(d.getDate() - n);
-  return d.toISOString().split('T')[0];
-}
-function firstOfMonth() {
-  const d = new Date();
-  return new Date(d.getFullYear(), d.getMonth(), 1).toISOString().split('T')[0];
-}
-
-function setPreset(p) {
-  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-  event.target.classList.add('active');
-  const from = document.getElementById('dateFrom');
-  const to = document.getElementById('dateTo');
-  to.value = today();
-  if (p === 'today') from.value = today();
-  else if (p === 'week') from.value = daysAgo(7);
-  else if (p === 'month') from.value = firstOfMonth();
-  else if (p === 'last30') from.value = daysAgo(30);
+function setPreset(p, btn) {
+  document.querySelectorAll('.fbtn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  const f = document.getElementById('dateFrom'), t = document.getElementById('dateTo');
+  if (p==='today') { f.value=toDay(); t.value=toDay(); }
+  else if (p==='week') { f.value=daysAgo(7); t.value=toDay(); }
+  else if (p==='14days') { f.value=daysAgo(14); t.value=toDay(); }
+  else if (p==='month') { f.value=firstMonth(); t.value=toDay(); }
+  else if (p==='lastmonth') { const r=lastMonthRange(); f.value=r.f; t.value=r.t; }
   loadData();
 }
 
-// ─── FORMAT HELPERS ───────────────────────────────────────
-function fMXN(v) { return '$' + parseFloat(v||0).toLocaleString('es-MX', {minimumFractionDigits:0, maximumFractionDigits:0}); }
-function fNum(v) { return parseFloat(v||0).toLocaleString('es-MX'); }
-function fPct(v) { return parseFloat(v||0).toFixed(2) + '%'; }
-function fK(v) { const n = parseFloat(v||0); return n >= 1000 ? (n/1000).toFixed(1)+'K' : n.toString(); }
+// ─── FORMAT ─────────────────────────────────
+const fMXN = v => '$'+parseFloat(v||0).toLocaleString('es-MX',{minimumFractionDigits:0,maximumFractionDigits:0});
+const fNum = v => parseFloat(v||0).toLocaleString('es-MX');
+const fPct = v => parseFloat(v||0).toFixed(2)+'%';
+const fK = v => { const n=parseFloat(v||0); return n>=1000000?(n/1000000).toFixed(1)+'M':n>=1000?(n/1000).toFixed(1)+'K':n.toString(); };
+const fDate = s => { if(!s||s==='—') return '—'; const d=new Date(s); return isNaN(d)?s:d.toLocaleDateString('es-MX',{day:'2-digit',month:'short',year:'numeric'}); };
 
-// ─── LOAD DATA ────────────────────────────────────────────
+function setBadge(val, id, invertir=false) {
+  const el = document.getElementById(id);
+  if (!el || val===null||val===undefined) return;
+  const v = parseFloat(val);
+  const good = invertir ? v<0 : v>0;
+  const cls = v===0?'neu':good?'up':'dn';
+  const arrow = v>0?'↑':v<0?'↓':'—';
+  el.innerHTML = `<span class="kbadge ${cls}">${arrow} ${Math.abs(v)}%</span>`;
+}
+
+function statusEl(s) {
+  const st=(s||'').toUpperCase();
+  if(st==='ACTIVE') return '<span class="ad-st active">ACTIVO</span>';
+  if(st==='PAUSED') return '<span class="ad-st paused">PAUSADO</span>';
+  return `<span class="ad-st other">${st||'—'}</span>`;
+}
+
+// ─── RENDER ADS ─────────────────────────────
+function renderAds(list, containerId, tipo) {
+  const el = document.getElementById(containerId);
+  el.innerHTML = '';
+  if (!list||!list.length) { el.innerHTML='<div style="color:var(--text2);font-size:12px;padding:10px">Sin datos en este periodo.</div>'; return; }
+  list.forEach(a => {
+    const imgEl = a.imagen
+      ? `<img class="ad-img" src="${a.imagen}" alt="" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">`
+      : '';
+    const ph = `<div class="ad-ph" ${a.imagen?'style="display:none"':''}>📷</div>`;
+    const resLabel = tipo==='meta'?'Resultados':'Conv.';
+    const resVal = tipo==='meta'?fNum(a.resultados):fNum(a.conversiones);
+    const waRow = tipo==='meta'&&a.wa>0?`<div class="am"><div class="am-l">WhatsApp</div><div class="am-v g">${fNum(a.wa)}</div></div>`:'';
+    el.innerHTML += `
+    <div class="ad-row">
+      ${imgEl}${ph}
+      <div class="ad-body">
+        <div class="ad-top"><div class="ad-name">${a.nombre}</div>${statusEl(a.estado)}</div>
+        <div class="ad-meta">${[a.conjunto,a.campana].filter(Boolean).join(' · ')}</div>
+        <div class="ad-metrics">
+          <div class="am"><div class="am-l">Gasto</div><div class="am-v r">${fMXN(a.gasto)}</div></div>
+          <div class="am"><div class="am-l">${resLabel}</div><div class="am-v g">${resVal}</div></div>
+          ${waRow}
+          <div class="am"><div class="am-l">CPR</div><div class="am-v">${+a.cpl>0?fMXN(a.cpl):'—'}</div></div>
+          <div class="am"><div class="am-l">CTR</div><div class="am-v">${fPct(a.ctr)}</div></div>
+          <div class="am"><div class="am-l">LTR</div><div class="am-v">${fPct(a.ltr)}</div></div>
+          <div class="am"><div class="am-l">CPM</div><div class="am-v">${fMXN(a.cpm)}</div></div>
+          <div class="am"><div class="am-l">Imp.</div><div class="am-v">${fK(a.imp||a.impresiones)}</div></div>
+        </div>
+      </div>
+    </div>`;
+  });
+}
+
+// ─── CHART ──────────────────────────────────
+function renderChart(canvasId, ref, data, label, color) {
+  const ctx = document.getElementById(canvasId).getContext('2d');
+  if (ref) ref.destroy();
+  const isDark = document.documentElement.getAttribute('data-theme')==='dark';
+  const gridColor = isDark?'#1C1C1C':'#E0E0E0';
+  const tickColor = isDark?'#555':'#999';
+  return new Chart(ctx, {
+    type:'line',
+    data:{ labels:data.map(d=>d.fecha.slice(5)), datasets:[{ label, data:data.map(d=>parseFloat(d.gasto)), borderColor:color, backgroundColor:color+'22', borderWidth:2, pointRadius:3, pointBackgroundColor:color, fill:true, tension:0.3 }] },
+    options:{ responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{display:false}, tooltip:{ backgroundColor:'#1C1C1C', borderColor:'#333', borderWidth:1, titleColor:'#888', bodyColor:'#fff', callbacks:{label:c=>' $'+c.parsed.y.toLocaleString('es-MX',{minimumFractionDigits:2})} } },
+      scales:{ x:{grid:{color:gridColor},ticks:{color:tickColor,font:{size:9}}}, y:{grid:{color:gridColor},ticks:{color:tickColor,font:{size:9},callback:v=>'$'+(v/1000).toFixed(1)+'K'}} }
+    }
+  });
+}
+
+// ─── LOAD ────────────────────────────────────
 async function loadData() {
-  const from = document.getElementById('dateFrom').value;
-  const to = document.getElementById('dateTo').value;
-  const loading = document.getElementById('loading');
-  const errorBar = document.getElementById('errorBar');
-  const btn = document.querySelector('.btn-refresh');
-
+  const from=document.getElementById('dateFrom').value;
+  const to=document.getElementById('dateTo').value;
+  const loading=document.getElementById('loading');
+  const ebar=document.getElementById('ebar');
+  const btn=document.querySelector('.btn-sm:last-child');
   loading.classList.remove('hidden');
   btn.classList.add('loading');
-  errorBar.classList.remove('show');
-
+  ebar.classList.remove('show');
   try {
-    const url = `${WEBHOOK_URL}?date_from=${from}&date_to=${to}`;
-    const res = await fetch(url);
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    const data = await res.json();
-    if (!data.ok) throw new Error('Respuesta inválida del servidor');
-    renderDashboard(data, from, to);
-    document.getElementById('lastUpdate').textContent = 'Actualizado: ' + new Date().toLocaleTimeString('es-MX');
-  } catch (e) {
-    errorBar.textContent = '⚠ Error al cargar datos: ' + e.message;
-    errorBar.classList.add('show');
+    const res=await fetch(`${WEBHOOK}?date_from=${from}&date_to=${to}`);
+    if(!res.ok) throw new Error('HTTP '+res.status);
+    const d=await res.json();
+    if(!d.ok) throw new Error('Respuesta inválida');
+    window._lastData=d;
+    render(d,from,to);
+    document.getElementById('lastUpdate').textContent='Actualizado: '+new Date().toLocaleTimeString('es-MX');
+  } catch(e) {
+    ebar.textContent='⚠ Error: '+e.message;
+    ebar.classList.add('show');
   } finally {
     loading.classList.add('hidden');
     btn.classList.remove('loading');
   }
 }
 
-// ─── RENDER ───────────────────────────────────────────────
-function renderDashboard(data, from, to) {
-  const { meta, tiktok, ghl } = data;
-  const mt = meta.totales;
-  const tt = tiktok.totales;
+// ─── RENDER ──────────────────────────────────
+function render(d, from, to) {
+  const {meta,tiktok,ghl}=d;
+  const mt=meta.totales, tt=tiktok.totales;
+  const mc=meta.comparativo||{}, tc=tiktok.comparativo||{};
 
-  // Periodo label
-  document.getElementById('periodoLabel').textContent = from + ' → ' + to;
+  document.getElementById('periodoLabel').textContent=from+' → '+to;
 
-  // KPIs resumen
-  const gastoTotal = parseFloat(mt.gasto||0) + parseFloat(tt.gasto||0);
-  const leadsTotal = parseFloat(mt.leads||0) + parseFloat(tt.conversiones||0);
-  const cplTotal = leadsTotal > 0 ? gastoTotal / leadsTotal : 0;
-  const impTotal = (mt.impresiones||0) + (tt.impresiones||0);
+  // Resumen
+  const gTotal=parseFloat(mt.gasto||0)+parseFloat(tt.gasto||0);
+  const rTotal=parseFloat(mt.resultados||0)+parseFloat(tt.conversiones||0);
+  document.getElementById('rGasto').textContent=fMXN(gTotal);
+  document.getElementById('rRes').textContent=fNum(rTotal);
+  document.getElementById('rCpr').textContent=rTotal>0?fMXN(gTotal/rTotal):'—';
+  document.getElementById('rImp').textContent=fK((mt.impresiones||0)+(tt.impresiones||0));
+  document.getElementById('rOps').textContent=fNum(ghl.abiertas);
 
-  document.getElementById('kpiGastoTotal').textContent = fMXN(gastoTotal);
-  document.getElementById('kpiLeadsTotal').textContent = fNum(leadsTotal);
-  document.getElementById('kpiCplTotal').textContent = fMXN(cplTotal);
-  document.getElementById('kpiImpTotal').textContent = fK(impTotal);
-  document.getElementById('kpiOpsAbiertas').textContent = fNum(ghl.abiertas);
-  document.getElementById('kpiOpsPerdidas').textContent = fNum(ghl.perdidas);
+  // Meta KPIs
+  const mk=[['mGasto',mt.gasto,mc.gasto,false,fMXN],['mImp',mt.impresiones,mc.impresiones,false,fK],['mAlc',mt.alcance,mc.alcance,false,fK],['mClk',mt.clicks,mc.clicks,false,fNum],['mRes',mt.resultados,mc.resultados,false,fNum],['mCtr',mt.ctr,mc.ctr,false,v=>fPct(v)],['mCpm',mt.cpm,mc.cpm,true,fMXN],['mLtr',mt.ltr,mc.ltr,false,v=>fPct(v)],['mCpr',mt.cpl,mc.cpl,true,fMXN],['mFrq',mt.frecuencia,mc.frecuencia,true,v=>parseFloat(v||0).toFixed(2)+'x']];
+  mk.forEach(([id,val,comp,inv,fmt])=>{ const el=document.getElementById(id); if(el) el.textContent=fmt(val); setBadge(comp,id+'B',inv); });
+  document.getElementById('mResSub').textContent=`${fNum(mt.leads)} leads · ${fNum(mt.whatsapp)} WA`;
 
-  // Meta totales
-  document.getElementById('metaGasto').textContent = fMXN(mt.gasto);
-  document.getElementById('metaImp').textContent = fK(mt.impresiones);
-  document.getElementById('metaAlcance').textContent = fK(mt.alcance);
-  document.getElementById('metaClicks').textContent = fNum(mt.clicks);
-  document.getElementById('metaCtr').textContent = fPct(mt.ctr);
-  document.getElementById('metaCpm').textContent = fMXN(mt.cpm);
-  document.getElementById('metaLeads').textContent = fNum(mt.leads);
-  document.getElementById('metaCpl').textContent = fMXN(mt.cpl);
-  document.getElementById('metaFrec').textContent = parseFloat(mt.frecuencia||0).toFixed(2)+'x';
+  // TikTok KPIs
+  const tk=[['tGasto',tt.gasto,tc.gasto,false,fMXN],['tImp',tt.impresiones,tc.impresiones,false,fK],['tAlc',tt.alcance,tc.alcance,false,fK],['tClk',tt.clicks,tc.clicks,false,fNum],['tConv',tt.conversiones,tc.conversiones,false,fNum],['tCtr',tt.ctr,tc.ctr,false,v=>fPct(v)],['tCpm',tt.cpm,tc.cpm,true,fMXN],['tLtr',tt.ltr,tc.ltr,false,v=>fPct(v)],['tCpr',tt.cpl,tc.cpl,true,fMXN],['tFrq',tt.frecuencia,tc.frecuencia,true,v=>parseFloat(v||0).toFixed(2)+'x']];
+  tk.forEach(([id,val,comp,inv,fmt])=>{ const el=document.getElementById(id); if(el) el.textContent=fmt(val); setBadge(comp,id+'B',inv); });
 
-  // TikTok totales
-  document.getElementById('ttGasto').textContent = fMXN(tt.gasto);
-  document.getElementById('ttImp').textContent = fK(tt.impresiones);
-  document.getElementById('ttAlcance').textContent = fK(tt.alcance);
-  document.getElementById('ttClicks').textContent = fNum(tt.clicks);
-  document.getElementById('ttCtr').textContent = fPct(tt.ctr);
-  document.getElementById('ttCpm').textContent = fMXN(tt.cpm);
-  document.getElementById('ttConv').textContent = fNum(tt.conversiones);
-  document.getElementById('ttCpl').textContent = fMXN(tt.cpl);
-  document.getElementById('ttFrec').textContent = parseFloat(tt.frecuencia||0).toFixed(2)+'x';
-
-  // Campañas Meta
-  const tbMeta = document.querySelector('#tblMetaCampanas tbody');
-  tbMeta.innerHTML = '';
-  (meta.campanas||[]).forEach(c => {
-    const tr = document.createElement('tr');
-    tr.innerHTML = `
-      <td style="max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${c.nombre}</td>
-      <td class="r">${fMXN(c.gasto)}</td>
-      <td class="${parseFloat(c.leads)>0?'gv':'r'}">${fNum(c.leads)}</td>
-      <td class="${parseFloat(c.cpl)>300?'rv':'r'}">${c.cpl>0?fMXN(c.cpl):'—'}</td>
-      <td class="r">${fPct(c.ctr)}</td>`;
-    tbMeta.appendChild(tr);
-  });
-
-  // Campañas TikTok
-  const tbTT = document.querySelector('#tblTikTokCampanas tbody');
-  tbTT.innerHTML = '';
-  (tiktok.campanas||[]).forEach(c => {
-    const tr = document.createElement('tr');
-    tr.innerHTML = `
-      <td style="max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${c.nombre}</td>
-      <td class="r">${fMXN(c.gasto)}</td>
-      <td class="${parseFloat(c.conversiones)>0?'gv':'r'}">${fNum(c.conversiones)}</td>
-      <td class="${parseFloat(c.cpl)>300?'rv':'r'}">${c.cpl>0?fMXN(c.cpl):'—'}</td>
-      <td class="r">${fPct(c.ctr)}</td>`;
-    tbTT.appendChild(tr);
-  });
+  // Anuncios
+  renderAds(meta.anuncios,'metaAds','meta');
+  renderAds(tiktok.anuncios,'tiktokAds','tiktok');
 
   // Charts
-  renderChart('chartMeta', chartMeta, meta.tendencia||[], 'Meta Ads', '#1877F2');
-  renderChart('chartTikTok', chartTikTok, tiktok.tendencia||[], 'TikTok Ads', '#FE2C55');
+  chartMeta=renderChart('chartMeta',chartMeta,meta.tendencia||[],'Meta Ads','#1877F2');
+  chartTT=renderChart('chartTikTok',chartTT,tiktok.tendencia||[],'TikTok Ads','#FE2C55');
 
-  // Funnel GHL
-  const funnelEl = document.getElementById('funnelGHL');
-  funnelEl.innerHTML = '';
-  const maxEtapa = Math.max(...(ghl.etapas||[]).map(e => e.cantidad), 1);
-  (ghl.etapas||[]).forEach(e => {
-    const pct = (e.cantidad / maxEtapa * 100).toFixed(1);
-    const nombre = STAGE_NAMES[e.nombre] || e.nombre;
-    const div = document.createElement('div');
-    div.className = 'funnel-row';
-    div.innerHTML = `
-      <span class="funnel-label">${nombre}</span>
-      <div class="funnel-bar-wrap">
-        <div class="funnel-bar" style="width:${pct}%">${e.cantidad}</div>
-      </div>
-      <span class="funnel-num">${e.cantidad}</span>`;
-    funnelEl.appendChild(div);
+  // Funnel
+  const funnel=document.getElementById('funnelGHL');
+  funnel.innerHTML='';
+  const maxE=Math.max(...(ghl.etapas||[]).map(e=>e.cantidad),1);
+  (ghl.etapas||[]).forEach(e=>{
+    const pct=(e.cantidad/maxE*100).toFixed(1);
+    funnel.innerHTML+=`<div class="frow"><span class="flbl">${e.nombre}</span><div class="fbw"><div class="fbf" style="width:${pct}%">${e.cantidad}</div></div><span class="fnum">${e.cantidad}</span></div>`;
   });
+  if(!(ghl.etapas||[]).length) funnel.innerHTML='<div style="color:var(--text2);font-size:12px;padding:8px">Sin datos de pipeline.</div>';
 
   // Fuentes
-  const tbFuentes = document.querySelector('#tblFuentes tbody');
-  tbFuentes.innerHTML = '';
-  (ghl.fuentes||[]).forEach(f => {
-    const tr = document.createElement('tr');
-    tr.innerHTML = `<td>${f.nombre}</td><td class="r">${f.cantidad}</td>`;
-    tbFuentes.appendChild(tr);
-  });
+  const tbF=document.querySelector('#tblFuentes tbody');
+  tbF.innerHTML='';
+  (ghl.fuentes||[]).forEach(f=>{ tbF.innerHTML+=`<tr><td>${f.nombre}</td><td class="r">${f.cantidad}</td></tr>`; });
+  if(!(ghl.fuentes||[]).length) tbF.innerHTML='<tr><td colspan="2" style="color:var(--text2);text-align:center;padding:12px">Sin datos</td></tr>';
 
-  // Razones de pérdida
-  const tbRazones = document.querySelector('#tblRazones tbody');
-  tbRazones.innerHTML = '';
-  if ((ghl.razones_perdida||[]).length === 0) {
-    tbRazones.innerHTML = '<tr><td colspan="2" style="color:var(--gray);text-align:center;padding:16px">Sin datos de pérdida en este periodo</td></tr>';
-  } else {
-    (ghl.razones_perdida||[]).forEach(r => {
-      const nombre = STAGE_NAMES[r.id] || r.id;
-      const tr = document.createElement('tr');
-      tr.innerHTML = `<td>${nombre}</td><td class="rv">${r.cantidad}</td>`;
-      tbRazones.appendChild(tr);
-    });
-  }
+  // Razones
+  const tbR=document.querySelector('#tblRazones tbody');
+  tbR.innerHTML='';
+  (ghl.razones_perdida||[]).forEach(r=>{ tbR.innerHTML+=`<tr><td>${r.nombre}</td><td class="rv">${r.cantidad}</td></tr>`; });
+  if(!(ghl.razones_perdida||[]).length) tbR.innerHTML='<tr><td colspan="2" style="color:var(--text2);text-align:center;padding:12px">Sin pérdidas en este periodo</td></tr>';
+
+  // Leads recientes
+  const tbL=document.querySelector('#tblLeads tbody');
+  tbL.innerHTML='';
+  (ghl.leads_recientes||[]).forEach(l=>{
+    const etapaColor = l.etapa==='Cita Concretada'?'color:var(--green)':l.etapa==='Descartado'?'color:var(--red)':'';
+    tbL.innerHTML+=`<tr>
+      <td>${l.nombre}</td>
+      <td class="r" style="white-space:nowrap">${fDate(l.fecha)}</td>
+      <td class="r">${l.fuente}</td>
+      <td><span class="etapa-badge" style="${etapaColor}">${l.etapa}</span></td>
+    </tr>`;
+  });
+  if(!(ghl.leads_recientes||[]).length) tbL.innerHTML='<tr><td colspan="4" style="color:var(--text2);text-align:center;padding:12px">Sin leads en este periodo</td></tr>';
 }
 
-// ─── CHART ────────────────────────────────────────────────
-function renderChart(canvasId, chartRef, tendencia, label, color) {
-  const ctx = document.getElementById(canvasId).getContext('2d');
-  if (chartRef) chartRef.destroy();
-
-  const labels = tendencia.map(d => d.fecha.slice(5));
-  const values = tendencia.map(d => parseFloat(d.gasto));
-
-  const chart = new Chart(ctx, {
-    type: 'line',
-    data: {
-      labels,
-      datasets: [{
-        label,
-        data: values,
-        borderColor: color,
-        backgroundColor: color + '22',
-        borderWidth: 2,
-        pointRadius: 3,
-        pointBackgroundColor: color,
-        fill: true,
-        tension: 0.3
-      }]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: {
-        legend: { display: false },
-        tooltip: {
-          backgroundColor: '#1C1C1C',
-          borderColor: '#333',
-          borderWidth: 1,
-          titleColor: '#888',
-          bodyColor: '#fff',
-          callbacks: {
-            label: ctx => ' $' + ctx.parsed.y.toLocaleString('es-MX', {minimumFractionDigits:2})
-          }
-        }
-      },
-      scales: {
-        x: { grid: { color: '#1C1C1C' }, ticks: { color: '#555', font: { size: 10 } } },
-        y: {
-          grid: { color: '#1C1C1C' },
-          ticks: {
-            color: '#555', font: { size: 10 },
-            callback: v => '$' + (v/1000).toFixed(1) + 'K'
-          }
-        }
-      }
-    }
-  });
-
-  if (canvasId === 'chartMeta') chartMeta = chart;
-  else chartTikTok = chart;
-}
-
-// ─── INIT ─────────────────────────────────────────────────
-(function init() {
-  const from = document.getElementById('dateFrom');
-  const to = document.getElementById('dateTo');
-  from.value = firstOfMonth();
-  to.value = today();
+// ─── INIT ────────────────────────────────────
+(function(){
+  document.getElementById('dateFrom').value=firstMonth();
+  document.getElementById('dateTo').value=toDay();
   loadData();
 })();
 </script>
