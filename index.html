@@ -231,7 +231,8 @@ html,body{min-height:100%;background:var(--bg);color:var(--text);font-family:var
       <div class="kcard blu"><div class="klabel">Resultados</div><div class="kval" id="rRes">—</div><div class="ksub">Leads + WhatsApp</div></div>
       <div class="kcard"><div class="klabel">CPR combinado</div><div class="kval" id="rCpr">—</div><div class="ksub">Costo por resultado</div></div>
       <div class="kcard"><div class="klabel">Impresiones</div><div class="kval" id="rImp">—</div><div class="ksub">Ambas plataformas</div></div>
-      <div class="kcard grn"><div class="klabel">Ops abiertas</div><div class="kval" id="rOps">—</div><div class="ksub">Estado actual CRM</div></div>
+      <div class="kcard grn"><div class="klabel">Citas concretadas</div><div class="kval" id="rCitas">—</div><div class="ksub">Abiertas + perdidas</div></div>
+      <div class="kcard red"><div class="klabel">Pérdidas</div><div class="kval" id="rPerdidas">—</div><div class="ksub">Oportunidades perdidas</div></div>
     </div>
   </div>
 
@@ -444,6 +445,7 @@ function renderAds(list, containerId, tipo) {
           <div class="am"><div class="am-l">CTR</div><div class="am-v">${fPct(a.ctr)}</div></div>
           <div class="am"><div class="am-l">LTR</div><div class="am-v">${fPct(a.ltr)}</div></div>
           <div class="am"><div class="am-l">CPM</div><div class="am-v">${fMXN(a.cpm)}</div></div>
+          <div class="am"><div class="am-l">Frec.</div><div class="am-v">${parseFloat(a.frecuencia||0).toFixed(2)}x</div></div>
           <div class="am"><div class="am-l">Imp.</div><div class="am-v">${fK(a.imp||a.impresiones)}</div></div>
         </div>
       </div>
@@ -510,7 +512,8 @@ function render(d, from, to) {
   document.getElementById('rRes').textContent=fNum(rTotal);
   document.getElementById('rCpr').textContent=rTotal>0?fMXN(gTotal/rTotal):'—';
   document.getElementById('rImp').textContent=fK((mt.impresiones||0)+(tt.impresiones||0));
-  document.getElementById('rOps').textContent=fNum(ghl.abiertas);
+  document.getElementById('rCitas').textContent=fNum(ghl.citas_concretadas||0);
+  document.getElementById('rPerdidas').textContent=fNum(ghl.perdidas);
 
   // Meta KPIs
   const mk=[['mGasto',mt.gasto,mc.gasto,false,fMXN],['mImp',mt.impresiones,mc.impresiones,false,fK],['mAlc',mt.alcance,mc.alcance,false,fK],['mClk',mt.clicks,mc.clicks,false,fNum],['mRes',mt.resultados,mc.resultados,false,fNum],['mCtr',mt.ctr,mc.ctr,false,v=>fPct(v)],['mCpm',mt.cpm,mc.cpm,true,fMXN],['mLtr',mt.ltr,mc.ltr,false,v=>fPct(v)],['mCpr',mt.cpl,mc.cpl,true,fMXN],['mFrq',mt.frecuencia,mc.frecuencia,true,v=>parseFloat(v||0).toFixed(2)+'x']];
@@ -534,8 +537,10 @@ function render(d, from, to) {
   funnel.innerHTML='';
   const maxE=Math.max(...(ghl.etapas||[]).map(e=>e.cantidad),1);
   (ghl.etapas||[]).forEach(e=>{
-    const pct=(e.cantidad/maxE*100).toFixed(1);
-    funnel.innerHTML+=`<div class="frow"><span class="flbl">${e.nombre}</span><div class="fbw"><div class="fbf" style="width:${pct}%">${e.cantidad}</div></div><span class="fnum">${e.cantidad}</span></div>`;
+    const pct=e.cantidad>0?(e.cantidad/maxE*100).toFixed(1):'0';
+    const barStyle=e.cantidad>0?`width:${pct}%;background:var(--red)`:`width:0%`;
+    const numStyle=e.cantidad===0?`color:var(--text3)`:``;
+    funnel.innerHTML+=`<div class="frow"><span class="flbl" style="${e.cantidad===0?'color:var(--text3)':''}">${e.nombre}</span><div class="fbw"><div class="fbf" style="${barStyle}">${e.cantidad>0?e.cantidad:''}</div></div><span class="fnum" style="${numStyle}">${e.cantidad}</span></div>`;
   });
   if(!(ghl.etapas||[]).length) funnel.innerHTML='<div style="color:var(--text2);font-size:12px;padding:8px">Sin datos de pipeline.</div>';
 
