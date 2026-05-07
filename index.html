@@ -83,9 +83,8 @@ html,body{min-height:100%;background:var(--bg);color:var(--text);font-family:var
 .platform-panel{display:none}.platform-panel.active{display:block}
 
 /* ─── KPI GRID ────────────────────────────── */
-.kgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
-@media(min-width:480px){.kgrid{grid-template-columns:repeat(3,1fr)}}
-@media(min-width:700px){.kgrid{grid-template-columns:repeat(5,1fr)}}
+.kgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+@media(min-width:700px){.kgrid{grid-template-columns:repeat(6,1fr)}}
 
 .kcard{background:var(--card-bg);border:1px solid var(--border);border-radius:8px;padding:12px;position:relative;overflow:hidden;transition:border-color .2s}
 .kcard::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--border)}
@@ -159,7 +158,61 @@ html,body{min-height:100%;background:var(--bg);color:var(--text);font-family:var
 .ebar{background:rgba(192,21,43,.1);border:1px solid rgba(192,21,43,.3);color:#ff6b7a;padding:10px 16px;font-size:12px;display:none;text-align:center}
 .ebar.show{display:block}
 
-/* ─── FOOTER ──────────────────────────────── */
+/* ─── PRINT / PDF ─────────────────────────── */
+@media print {
+  *{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}
+  body{background:#fff!important;color:#000!important;font-size:11px}
+  .header,.filters,.overlay,.ebar,.hright,.ptabs,.today-dot{display:none!important}
+  .header-inner{display:flex!important;justify-content:space-between;padding:12px 0;border-bottom:2px solid #C0152B;margin-bottom:16px}
+  .hbrand{display:flex!important}
+  .hdot{background:#C0152B!important}
+  .hname,.hsub{color:#000!important}
+  .wrap,.main{padding:0!important}
+  .section{margin-bottom:0;page-break-after:always}
+  .section:last-child{page-break-after:avoid}
+  .kcard{background:#f5f5f5!important;border:1px solid #ddd!important;break-inside:avoid}
+  .kcard::before{background:#C0152B!important}
+  .kcard.red .kval{color:#C0152B!important}
+  .kval{color:#000!important;font-size:18px!important}
+  .klabel,.ksub{color:#666!important}
+  .kbadge.up{background:#e8f5e9!important;color:#2e7d32!important}
+  .kbadge.dn{background:#ffebee!important;color:#c62828!important}
+  .card{background:#fff!important;border:1px solid #ddd!important;break-inside:avoid}
+  .card-title{color:#000!important}
+  .platform-panel{display:block!important}
+  .ptab{display:none!important}
+  .ad-row{background:#f5f5f5!important;border:1px solid #ddd!important;break-inside:avoid;margin-bottom:6px}
+  .ad-name{color:#000!important}
+  .ad-meta{color:#666!important}
+  .am-l{color:#666!important}
+  .am-v{color:#000!important}
+  .am-v.r{color:#C0152B!important}
+  .am-v.g{color:#2e7d32!important}
+  .ad-st.active{background:#e8f5e9!important;color:#2e7d32!important}
+  .ad-st.paused{background:#fff3e0!important;color:#e65100!important}
+  .tbl th{color:#666!important;border-bottom:1px solid #ddd!important}
+  .tbl td{color:#000!important;border-bottom:1px solid #eee!important}
+  .tbl td.rv{color:#C0152B!important}
+  .tbl td.gv{color:#2e7d32!important}
+  .stag{background:#C0152B!important;color:#fff!important}
+  .stitle{color:#000!important}
+  .ssub{color:#666!important}
+  .sh{margin-bottom:10px}
+  .funnel .fbw{background:#eee!important}
+  .funnel .fbf{background:#C0152B!important}
+  .flbl{color:#333!important}
+  .fnum{color:#000!important}
+  .today-tag{background:#e8f5e9!important;border-color:#a5d6a7!important;color:#2e7d32!important}
+  .footer{display:none!important}
+  .chart-wrap{height:140px!important}
+  .kgrid{grid-template-columns:repeat(3,1fr)!important}
+  .grid2{grid-template-columns:1fr 1fr!important}
+  h2,.sh .stitle{font-size:12px!important}
+  /* PDF section headers */
+  .pdf-page-header{display:block!important;font-size:9px;color:#999;text-transform:uppercase;letter-spacing:.1em;margin-bottom:8px;padding-bottom:4px;border-bottom:1px solid #eee}
+}
+.pdf-page-header{display:none}
+</style>
 .footer{border-top:1px solid var(--border);padding:14px 0}
 .footer-inner{max-width:var(--max);margin:0 auto;padding:0 16px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:6px}
 .footer span{font-size:10px;color:var(--text3)}
@@ -190,6 +243,7 @@ html,body{min-height:100%;background:var(--bg);color:var(--text);font-family:var
     <div class="hright">
       <span class="hupdate" id="lastUpdate">—</span>
       <button class="btn-sm btn-theme" onclick="toggleTheme()" title="Cambiar tema" id="themeBtn">☀️</button>
+      <button class="btn-sm" onclick="exportPDF()">⬇ PDF</button>
       <button class="btn-sm" onclick="loadData()"><span class="ri">↺</span> Actualizar</button>
     </div>
   </div>
@@ -263,7 +317,7 @@ html,body{min-height:100%;background:var(--bg);color:var(--text);font-family:var
       </div>
       <div class="sh"><span class="stag" style="background:var(--bg4);color:var(--text2)">Anuncios</span><span class="stitle" style="font-size:13px">Rendimiento por anuncio</span></div>
       <div class="ad-list" id="metaAds" style="margin-bottom:16px"></div>
-      <div class="sh"><span class="stag" style="background:var(--bg4);color:var(--text2)">Tendencia</span><span class="stitle" style="font-size:13px">Gasto diario Meta</span></div>
+      <div class="sh"><span class="stag" style="background:var(--bg4);color:var(--text2)">Tendencia</span><span class="stitle" style="font-size:13px">Leads diarios Meta</span></div>
       <div class="card"><div class="chart-wrap"><canvas id="chartMeta"></canvas></div></div>
     </div>
 
@@ -283,7 +337,7 @@ html,body{min-height:100%;background:var(--bg);color:var(--text);font-family:var
       </div>
       <div class="sh"><span class="stag" style="background:var(--bg4);color:var(--text2)">Anuncios</span><span class="stitle" style="font-size:13px">Rendimiento por anuncio</span></div>
       <div class="ad-list" id="tiktokAds" style="margin-bottom:16px"></div>
-      <div class="sh"><span class="stag" style="background:var(--bg4);color:var(--text2)">Tendencia</span><span class="stitle" style="font-size:13px">Gasto diario TikTok</span></div>
+      <div class="sh"><span class="stag" style="background:var(--bg4);color:var(--text2)">Tendencia</span><span class="stitle" style="font-size:13px">Leads diarios TikTok</span></div>
       <div class="card"><div class="chart-wrap"><canvas id="chartTikTok"></canvas></div></div>
     </div>
   </div>
@@ -292,7 +346,7 @@ html,body{min-height:100%;background:var(--bg);color:var(--text);font-family:var
   <div class="section">
     <div class="sh">
       <span class="stag">CRM</span>
-      <span class="stitle">GoHighLevel</span>
+      <span class="stitle">Lead2Close</span>
       <span class="today-tag"><span class="today-dot"></span>Al día de hoy</span>
     </div>
 
@@ -343,7 +397,7 @@ html,body{min-height:100%;background:var(--bg);color:var(--text);font-family:var
 
 <div class="footer">
   <div class="footer-inner">
-    <span>Datos en tiempo real · Windsor.ai · GoHighLevel</span>
+    <span>Datos en tiempo real</span>
     <span class="brand">Lead 2 Close Protocol · canseco.mx</span>
   </div>
 </div>
@@ -351,6 +405,25 @@ html,body{min-height:100%;background:var(--bg);color:var(--text);font-family:var
 <script>
 const WEBHOOK = 'https://flows.canseco.io/webhook/carrasco9-dashboard';
 let chartMeta = null, chartTT = null;
+
+// ─── PDF EXPORT ──────────────────────────────
+function exportPDF() {
+  // Switch to light mode for printing
+  const wasDark = document.documentElement.getAttribute('data-theme') === 'dark';
+  if (wasDark) document.documentElement.setAttribute('data-theme', 'light');
+  // Show both platform panels for print
+  document.querySelectorAll('.platform-panel').forEach(p => p.classList.add('active'));
+  setTimeout(() => {
+    window.print();
+    // Restore after print dialog
+    setTimeout(() => {
+      if (wasDark) document.documentElement.setAttribute('data-theme', 'dark');
+      // Restore tabs
+      document.querySelectorAll('.platform-panel').forEach(p => p.classList.remove('active'));
+      document.getElementById('panel-meta').classList.add('active');
+    }, 1000);
+  }, 300);
+}
 
 // ─── THEME ──────────────────────────────────
 function toggleTheme() {
@@ -454,7 +527,7 @@ function renderAds(list, containerId, tipo) {
 }
 
 // ─── CHART ──────────────────────────────────
-function renderChart(canvasId, ref, data, label, color) {
+function renderChart(canvasId, ref, data, label, color, field='resultados') {
   const ctx = document.getElementById(canvasId).getContext('2d');
   if (ref) ref.destroy();
   const isDark = document.documentElement.getAttribute('data-theme')==='dark';
@@ -462,10 +535,10 @@ function renderChart(canvasId, ref, data, label, color) {
   const tickColor = isDark?'#555':'#999';
   return new Chart(ctx, {
     type:'line',
-    data:{ labels:data.map(d=>d.fecha.slice(5)), datasets:[{ label, data:data.map(d=>parseFloat(d.gasto)), borderColor:color, backgroundColor:color+'22', borderWidth:2, pointRadius:3, pointBackgroundColor:color, fill:true, tension:0.3 }] },
+    data:{ labels:data.map(d=>d.fecha.slice(5)), datasets:[{ label, data:data.map(d=>parseFloat(d[field]||0)), borderColor:color, backgroundColor:color+'22', borderWidth:2, pointRadius:3, pointBackgroundColor:color, fill:true, tension:0.3 }] },
     options:{ responsive:true, maintainAspectRatio:false,
-      plugins:{ legend:{display:false}, tooltip:{ backgroundColor:'#1C1C1C', borderColor:'#333', borderWidth:1, titleColor:'#888', bodyColor:'#fff', callbacks:{label:c=>' $'+c.parsed.y.toLocaleString('es-MX',{minimumFractionDigits:2})} } },
-      scales:{ x:{grid:{color:gridColor},ticks:{color:tickColor,font:{size:9}}}, y:{grid:{color:gridColor},ticks:{color:tickColor,font:{size:9},callback:v=>'$'+(v/1000).toFixed(1)+'K'}} }
+      plugins:{ legend:{display:false}, tooltip:{ backgroundColor:'#1C1C1C', borderColor:'#333', borderWidth:1, titleColor:'#888', bodyColor:'#fff', callbacks:{label:c=>` ${Math.round(c.parsed.y)} leads`} } },
+      scales:{ x:{grid:{color:gridColor},ticks:{color:tickColor,font:{size:9}}}, y:{grid:{color:gridColor},ticks:{color:tickColor,font:{size:9},callback:v=>Math.round(v)},beginAtZero:true} }
     }
   });
 }
@@ -529,8 +602,8 @@ function render(d, from, to) {
   renderAds(tiktok.anuncios,'tiktokAds','tiktok');
 
   // Charts
-  chartMeta=renderChart('chartMeta',chartMeta,meta.tendencia||[],'Meta Ads','#1877F2');
-  chartTT=renderChart('chartTikTok',chartTT,tiktok.tendencia||[],'TikTok Ads','#FE2C55');
+  chartMeta=renderChart('chartMeta',chartMeta,meta.tendencia||[],'Meta Ads','#1877F2','resultados');
+  chartTT=renderChart('chartTikTok',chartTT,tiktok.tendencia||[],'TikTok Ads','#FE2C55','conversiones');
 
   // Funnel
   const funnel=document.getElementById('funnelGHL');
