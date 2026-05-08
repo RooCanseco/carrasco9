@@ -160,59 +160,61 @@ html,body{min-height:100%;background:var(--bg);color:var(--text);font-family:var
 
 /* ─── PRINT / PDF ─────────────────────────── */
 @media print {
-  *{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}
-  body{background:#fff!important;color:#000!important;font-size:11px}
-  .header,.filters,.overlay,.ebar,.hright,.ptabs,.today-dot{display:none!important}
-  .header-inner{display:flex!important;justify-content:space-between;padding:12px 0;border-bottom:2px solid #C0152B;margin-bottom:16px}
-  .hbrand{display:flex!important}
-  .hdot{background:#C0152B!important}
-  .hname,.hsub{color:#000!important}
-  .wrap,.main{padding:0!important}
-  .section{margin-bottom:0;page-break-after:always}
+  *{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important;box-sizing:border-box}
+  html,body{background:#fff!important;color:#000!important;font-size:11px;margin:0;padding:0}
+  .header,.filters,.overlay,.ebar,.hright,.ptabs,.today-dot,.footer{display:none!important;visibility:hidden!important}
+  .print-header{display:flex!important;justify-content:space-between;align-items:center;padding:14px 20px 12px;border-bottom:3px solid #C0152B;margin-bottom:16px}
+  .print-header .ph-brand{font-size:13px;font-weight:700;color:#000;letter-spacing:.06em;text-transform:uppercase}
+  .print-header .ph-brand span{color:#C0152B}
+  .print-header .ph-info{font-size:10px;color:#666;text-align:right}
+  .wrap{padding:0 20px!important;max-width:100%!important}
+  .main{padding:0!important}
+  .section{page-break-after:always;page-break-inside:avoid;padding-top:6px;margin-bottom:0!important}
   .section:last-child{page-break-after:avoid}
-  .kcard{background:#f5f5f5!important;border:1px solid #ddd!important;break-inside:avoid}
+  .kcard{background:#f7f7f7!important;border:1px solid #e0e0e0!important;break-inside:avoid;page-break-inside:avoid}
   .kcard::before{background:#C0152B!important}
   .kcard.red .kval{color:#C0152B!important}
-  .kval{color:#000!important;font-size:18px!important}
+  .kcard.grn .kval{color:#2e7d32!important}
+  .kcard.blu .kval{color:#1565C0!important}
+  .kval{color:#000!important;font-size:16px!important}
   .klabel,.ksub{color:#666!important}
   .kbadge.up{background:#e8f5e9!important;color:#2e7d32!important}
   .kbadge.dn{background:#ffebee!important;color:#c62828!important}
-  .card{background:#fff!important;border:1px solid #ddd!important;break-inside:avoid}
-  .card-title{color:#000!important}
+  .card{background:#fff!important;border:1px solid #e0e0e0!important;break-inside:avoid;page-break-inside:avoid;margin-bottom:8px}
+  .card-title{color:#000!important;font-weight:700}
   .platform-panel{display:block!important}
+  .platform-panel + .platform-panel{page-break-before:always}
   .ptab{display:none!important}
-  .ad-row{background:#f5f5f5!important;border:1px solid #ddd!important;break-inside:avoid;margin-bottom:6px}
-  .ad-name{color:#000!important}
-  .ad-meta{color:#666!important}
+  .ad-row{background:#f7f7f7!important;border:1px solid #e0e0e0!important;break-inside:avoid;page-break-inside:avoid;margin-bottom:6px}
+  .ad-name{color:#000!important;font-size:11px!important}
+  .ad-meta{color:#555!important}
   .am-l{color:#666!important}
-  .am-v{color:#000!important}
+  .am-v{color:#000!important;font-size:11px!important}
   .am-v.r{color:#C0152B!important}
   .am-v.g{color:#2e7d32!important}
   .ad-st.active{background:#e8f5e9!important;color:#2e7d32!important}
   .ad-st.paused{background:#fff3e0!important;color:#e65100!important}
-  .tbl th{color:#666!important;border-bottom:1px solid #ddd!important}
+  .tbl th{color:#666!important;border-bottom:1px solid #ddd!important;background:#f0f0f0!important}
   .tbl td{color:#000!important;border-bottom:1px solid #eee!important}
   .tbl td.rv{color:#C0152B!important}
   .tbl td.gv{color:#2e7d32!important}
   .stag{background:#C0152B!important;color:#fff!important}
-  .stitle{color:#000!important}
+  .stitle{color:#000!important;font-size:13px!important}
   .ssub{color:#666!important}
-  .sh{margin-bottom:10px}
-  .funnel .fbw{background:#eee!important}
+  .sh{margin-bottom:10px;padding-top:4px}
+  .funnel .fbw{background:#e0e0e0!important}
   .funnel .fbf{background:#C0152B!important}
   .flbl{color:#333!important}
   .fnum{color:#000!important}
   .today-tag{background:#e8f5e9!important;border-color:#a5d6a7!important;color:#2e7d32!important}
-  .footer{display:none!important}
-  .chart-wrap{height:140px!important}
-  .kgrid{grid-template-columns:repeat(3,1fr)!important}
+  .chart-wrap{height:130px!important}
+  .kgrid{grid-template-columns:repeat(3,1fr)!important;gap:6px!important}
   .grid2{grid-template-columns:1fr 1fr!important}
-  h2,.sh .stitle{font-size:12px!important}
-  /* PDF section headers */
-  .pdf-page-header{display:block!important;font-size:9px;color:#999;text-transform:uppercase;letter-spacing:.1em;margin-bottom:8px;padding-bottom:4px;border-bottom:1px solid #eee}
+  .ad-list{gap:6px!important}
 }
-.pdf-page-header{display:none}
-</style>
+.print-header{display:none}
+
+/* ─── FOOTER ──────────────────────────────── */
 .footer{border-top:1px solid var(--border);padding:14px 0}
 .footer-inner{max-width:var(--max);margin:0 auto;padding:0 16px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:6px}
 .footer span{font-size:10px;color:var(--text3)}
@@ -224,6 +226,12 @@ html,body{min-height:100%;background:var(--bg);color:var(--text);font-family:var
 </style>
 </head>
 <body>
+
+<!-- PRINT HEADER (solo visible en PDF) -->
+<div class="print-header">
+  <div class="ph-brand">CARRASCO 9 <span>|</span> Dashboard de Reporteo</div>
+  <div class="ph-info" id="printInfo">Lead 2 Close Protocol · canseco.mx</div>
+</div>
 
 <div class="overlay" id="loading">
   <div class="spinner"></div>
@@ -254,13 +262,11 @@ html,body{min-height:100%;background:var(--bg);color:var(--text);font-family:var
   <div class="filters-inner">
     <div class="frow">
       <span class="flabel">Periodo</span>
-      <button class="fbtn" onclick="setPreset('today',this)">Hoy</button>
-      <button class="fbtn" onclick="setPreset('week',this)">7 días</button>
-      <button class="fbtn" onclick="setPreset('14days',this)">14 días</button>
-      <button class="fbtn active" onclick="setPreset('month',this)">Este mes</button>
       <button class="fbtn" onclick="setPreset('lastmonth',this)">Mes pasado</button>
-    </div>
-    <div class="frow">
+      <button class="fbtn active" onclick="setPreset('month',this)">Este mes</button>
+      <button class="fbtn" onclick="setPreset('14days',this)">14 días</button>
+      <button class="fbtn" onclick="setPreset('week',this)">7 días</button>
+      <button class="fbtn" onclick="setPreset('3days',this)">3 días</button>
       <input type="date" class="fdate" id="dateFrom">
       <span style="color:var(--text2);font-size:11px">a</span>
       <input type="date" class="fdate" id="dateTo">
@@ -375,7 +381,7 @@ html,body{min-height:100%;background:var(--bg);color:var(--text);font-family:var
 
     <!-- Leads recientes -->
     <div class="card">
-      <div class="card-title">Leads recientes — últimos 15</div>
+      <div class="card-title">Leads recientes — <span id="leadsPerLabel" style="font-weight:400;color:var(--text2)">periodo seleccionado</span></div>
       <div style="overflow-x:auto">
         <table class="tbl" id="tblLeads">
           <thead>
@@ -462,6 +468,7 @@ function setPreset(p, btn) {
   if (p==='today') { f.value=toDay(); t.value=toDay(); }
   else if (p==='week') { f.value=daysAgo(7); t.value=toDay(); }
   else if (p==='14days') { f.value=daysAgo(14); t.value=toDay(); }
+  else if (p==='3days') { f.value=daysAgo(3); t.value=toDay(); }
   else if (p==='month') { f.value=firstMonth(); t.value=toDay(); }
   else if (p==='lastmonth') { const r=lastMonthRange(); f.value=r.f; t.value=r.t; }
   loadData();
@@ -577,6 +584,9 @@ function render(d, from, to) {
   const mc=meta.comparativo||{}, tc=tiktok.comparativo||{};
 
   document.getElementById('periodoLabel').textContent=from+' → '+to;
+  document.getElementById('leadsPerLabel').textContent=from+' → '+to;
+  const pi = document.getElementById('printInfo');
+  if(pi) pi.textContent=`Periodo: ${from} → ${to} · Lead 2 Close Protocol · canseco.mx`;
 
   // Resumen
   const gTotal=parseFloat(mt.gasto||0)+parseFloat(tt.gasto||0);
