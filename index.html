@@ -62,6 +62,9 @@ html,body{min-height:100%;background:var(--bg);color:var(--text);font-family:var
 .fdate{background:var(--input-bg);border:1px solid var(--border2);color:var(--text);padding:5px 8px;border-radius:4px;font-size:11px;font-family:var(--mono);outline:none;flex:1;min-width:110px}
 .fdate:focus{border-color:var(--red)}
 .fapply{background:var(--red);border:none;color:#fff;padding:5px 14px;border-radius:4px;cursor:pointer;font-size:11px;font-weight:700;font-family:var(--font)}
+.tt-warn{background:rgba(245,166,35,.08);border:1px solid rgba(245,166,35,.35);color:var(--amber);padding:8px 14px;font-size:11px;display:none;border-radius:4px;line-height:1.5}
+.tt-warn.show{display:block}
+.tt-warn strong{font-weight:700}
 
 /* ─── MAIN ────────────────────────────────── */
 .main{padding:20px 0 40px}
@@ -267,10 +270,13 @@ html,body{min-height:100%;background:var(--bg);color:var(--text);font-family:var
       <button class="fbtn" onclick="setPreset('14days',this)">14 días</button>
       <button class="fbtn" onclick="setPreset('week',this)">7 días</button>
       <button class="fbtn" onclick="setPreset('3days',this)">3 días</button>
-      <input type="date" class="fdate" id="dateFrom">
+      <input type="date" class="fdate" id="dateFrom" onchange="checkTTWarn()">
       <span style="color:var(--text2);font-size:11px">a</span>
-      <input type="date" class="fdate" id="dateTo">
+      <input type="date" class="fdate" id="dateTo" onchange="checkTTWarn()">
       <button class="fapply" onclick="loadData()">Aplicar</button>
+    </div>
+    <div class="tt-warn" id="ttWarn">
+      ⚠ <strong>TikTok Ads no mostrará datos para este periodo.</strong> La API de TikTok tiene un límite de 30 días por consulta. Para ver datos de TikTok, selecciona un rango de hasta 30 días.
     </div>
   </div>
 </div>
@@ -461,6 +467,14 @@ const lastMonthRange = () => {
   return { f: f.toISOString().split('T')[0], t: t.toISOString().split('T')[0] };
 };
 
+function checkTTWarn() {
+  const f = document.getElementById('dateFrom').value;
+  const t = document.getElementById('dateTo').value;
+  if (!f || !t) return;
+  const days = (new Date(t) - new Date(f)) / 86400000;
+  document.getElementById('ttWarn').classList.toggle('show', days > 30);
+}
+
 function setPreset(p, btn) {
   document.querySelectorAll('.fbtn').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
@@ -471,6 +485,7 @@ function setPreset(p, btn) {
   else if (p==='3days') { f.value=daysAgo(3); t.value=toDay(); }
   else if (p==='month') { f.value=firstMonth(); t.value=toDay(); }
   else if (p==='lastmonth') { const r=lastMonthRange(); f.value=r.f; t.value=r.t; }
+  checkTTWarn();
   loadData();
 }
 
